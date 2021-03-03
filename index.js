@@ -75,13 +75,13 @@ app.post('/guild', async (req, res) => {
 
 	let data = JSON.parse(fs.readFileSync(PATH));
 
-	if (!data.guilds[id]) {
-		data.guilds[id] = members;
-		fs.writeFileSync(PATH, JSON.stringify(data));
+	if (!data.guilds[id])
 		res.status(201).send('201 CREATED');
-	} else {
+	else
 		res.status(200).send('200 OK');
-	}
+
+	data.guilds[id] = members;
+	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
 app.listen(PORT, () => {
