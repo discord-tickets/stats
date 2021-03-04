@@ -2,7 +2,7 @@
 
 A simple API for providing basic statistics for Discord Tickets.
 
-The client data is stored separately from the guild data counts:
+The client data is stored separately from the guild data:
 
 ```json
 {
