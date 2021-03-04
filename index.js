@@ -12,7 +12,7 @@ const app = require('express')();
 
 if (!fs.existsSync(PATH)) {
 	let data = {
-		clients: [],
+		clients: {},
 		guilds: {}
 	};
 	fs.writeFileSync(PATH, JSON.stringify(data));
@@ -23,45 +23,56 @@ const regex = /\d{17,19}/;
 app.get('/', (req, res) => {
 	let { clients, guilds } = JSON.parse(fs.readFileSync(PATH));
 	res.json({
-		clients: clients.length,
+		clients: Object.keys(clients).length,
+		tickets: Object.keys(clients).reduce((acc, c) => acc + clients[c].tickets, 0),
 		guilds: Object.keys(guilds).length,
-		members: Object.keys(guilds).reduce((acc, g) => acc + guilds[g], 0)
+		members: Object.keys(guilds).reduce((acc, g) => acc + guilds[g].members, 0)
 	});
 });
 
 app.post('/client', async (req, res) => {
 	if (!req.query || !req.query.id)
 		return res.status(400).send('400 Bad Request: "Missing ID"');
+	
+	if (!req.query.tickets)
+		return res.status(400).send('400 Bad Request: "Missing tickets"');
 
-	let { id } = req.query;
+	let { id, tickets } = req.query;
+	tickets = Number(tickets);
 
 	if (!regex.test(id))
 		return res.status(400).send('400 Bad Request: "Invalid ID"');
 
+	if (isNaN(tickets))
+		return res.status(400).send('400 Bad Request: "Invalid tickets count"');
+
 	let data = JSON.parse(fs.readFileSync(PATH));
 
-	if (!data.clients.includes(id)) {
+	if (!data.clients[id]) {
 		let user = await (await fetch(`https://discord.com/api/users/${id}`, {
 			headers: {
 				'Authorization': `Bot ${DISCORD_TOKEN}`
 			}
 		})).json();
-
 		if (!user || !user.bot)
 			return res.status(400).send('400 Bad Request: "User is a human"');
-		data.clients.push(req.query.id);
-		fs.writeFileSync(PATH, JSON.stringify(data));
+		data.clients[id] = {
+			tickets: 0
+		};
 		res.status(201).send('201 CREATED');
 	} else {
 		res.status(200).send('200 OK');
 	}
+
+	data.clients[id].tickets = tickets;
+	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
 app.post('/guild', async (req, res) => {
 	if (!req.query || !req.query.id)
 		return res.status(400).send('400 Bad Request: "Missing ID"');
 
-	if (!req.query || !req.query.members)
+	if (!req.query.members)
 		return res.status(400).send('400 Bad Request: "Missing members"');
 
 	let { id, members } = req.query;
@@ -75,12 +86,16 @@ app.post('/guild', async (req, res) => {
 
 	let data = JSON.parse(fs.readFileSync(PATH));
 
-	if (!data.guilds[id])
+	if (!data.guilds[id]) {
+		data.guilds[id] = {
+			members: 0
+		};
 		res.status(201).send('201 CREATED');
-	else
+	} else {
 		res.status(200).send('200 OK');
+	}
 
-	data.guilds[id] = members;
+	data.guilds[id].members = members;
 	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
