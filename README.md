@@ -7,7 +7,7 @@ The client data is stored separately from the guild data:
 ```json
 {
 	"clients": {
-		"451745464480432129": {
+		"475371285531066368": {
 			"tickets": 426
 		}
 	},
