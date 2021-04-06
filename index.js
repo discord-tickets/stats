@@ -1,10 +1,7 @@
 require('dotenv').config();
 
 const PATH = './data.json';
-const {
-	DISCORD_TOKEN,
-	PORT
-} = process.env;
+const { PORT } = process.env;
 
 const fs = require('fs');
 const fetch = require('node-fetch');
