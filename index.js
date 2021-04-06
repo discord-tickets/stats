@@ -49,13 +49,6 @@ app.post('/client', async (req, res) => {
 	let data = JSON.parse(fs.readFileSync(PATH));
 
 	if (!data.clients[id]) {
-		let user = await (await fetch(`https://discord.com/api/users/${id}`, {
-			headers: {
-				'Authorization': `Bot ${DISCORD_TOKEN}`
-			}
-		})).json();
-		if (!user || !user.bot)
-			return res.status(400).send('400 Bad Request: "User is a human"');
 		data.clients[id] = {
 			tickets: 0
 		};
