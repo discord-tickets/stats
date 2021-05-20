@@ -6,6 +6,7 @@ const { PORT } = process.env;
 const fs = require('fs');
 const fetch = require('node-fetch');
 const app = require('express')();
+const cors = require('cors');
 
 if (!fs.existsSync(PATH)) {
 	let data = {
@@ -16,6 +17,8 @@ if (!fs.existsSync(PATH)) {
 }
 
 const regex = /\d{17,19}/;
+
+app.use(cors());
 
 app.get('/', (req, res) => {
 	let { clients, guilds } = JSON.parse(fs.readFileSync(PATH));
