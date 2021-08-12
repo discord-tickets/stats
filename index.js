@@ -12,18 +12,18 @@ if (!fs.existsSync(PATH)) {
 	fs.writeFileSync(PATH, JSON.stringify(data));
 }
 
-const app = require('express')();
-const cors = require('cors');
-app.use(cors());
-const ExpressLogger = require('leekslazylogger-express');
-const log = new ExpressLogger({
+const server = require('fastify')();
+const cors = require('fastify-cors');
+server.register(cors);
+const Logger = require('leekslazylogger-fastify');
+const log = new Logger({
 	name: 'Discord Tickets Stats',
 });
-app.use(log.express());
+server.register(log.fastify());
 
-app.get('/', (req, res) => {
+server.get('/', (req, res) => {
 	let { clients, guilds } = JSON.parse(fs.readFileSync(PATH));
-	res.json({
+	res.send({
 		clients: Object.keys(clients).length,
 		tickets: Object.keys(clients).reduce((acc, c) => acc + clients[c].tickets, 0),
 		guilds: Object.keys(guilds).length,
@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 	});
 });
 
-app.post('/client', async (req, res) => {
+server.post('/client', async (req, res) => {
 	if (!req.query || !req.query.id)
 		return res.status(400).send('400 Bad Request: "Missing ID"');
 	
@@ -62,7 +62,7 @@ app.post('/client', async (req, res) => {
 	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
-app.post('/guild', async (req, res) => {
+server.post('/guild', async (req, res) => {
 	if (!req.query || !req.query.id)
 		return res.status(400).send('400 Bad Request: "Missing ID"');
 
@@ -93,6 +93,6 @@ app.post('/guild', async (req, res) => {
 	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
 	log.success(`Listening on port ${PORT}`);
 });
