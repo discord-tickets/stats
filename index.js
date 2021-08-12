@@ -1,16 +1,39 @@
 require('dotenv').config();
 const { PORT } = process.env;
 const regex = /\d{17,19}/;
-const PATH = './data.json';
-const fs = require('fs');
 
-if (!fs.existsSync(PATH)) {
-	let data = {
-		clients: {},
-		guilds: {}
-	};
-	fs.writeFileSync(PATH, JSON.stringify(data));
-}
+const {
+	DataTypes,
+	Model,
+	Sequelize
+} = require('sequelize');
+const sequelize = new Sequelize({
+	dialect: 'sqlite',
+	logging: text => log.debug(text),
+	storage: 'database.sqlite'
+});
+
+class Client extends Model { }
+Client.init({
+	id: {
+		allowNull: false,
+		primaryKey: true,
+		type: DataTypes.CHAR(19)
+	},
+	tickets: DataTypes.NUMBER
+}, { sequelize, modelName: 'client' });
+
+class Guild extends Model { }
+Guild.init({
+	id: {
+		allowNull: false,
+		primaryKey: true,
+		type: DataTypes.CHAR(19)
+	},
+	members: DataTypes.NUMBER
+}, { sequelize, modelName: 'guild' });
+
+sequelize.sync();
 
 const server = require('fastify')();
 const cors = require('fastify-cors');
@@ -21,13 +44,14 @@ const log = new Logger({
 });
 server.register(log.fastify());
 
-server.get('/', (req, res) => {
-	let { clients, guilds } = JSON.parse(fs.readFileSync(PATH));
+server.get('/', async (req, res) => {
+	const { count: client_count, rows: clients } = await Client.findAndCountAll();
+	const { count: guild_count, rows: guilds } = await Guild.findAndCountAll();
 	res.send({
-		clients: Object.keys(clients).length,
-		tickets: Object.keys(clients).reduce((acc, c) => acc + clients[c].tickets, 0),
-		guilds: Object.keys(guilds).length,
-		members: Object.keys(guilds).reduce((acc, g) => acc + guilds[g].members, 0)
+		clients: client_count,
+		tickets: clients.reduce((acc, c) => acc + c.get('tickets'), 0),
+		guilds: guild_count,
+		members: guilds.reduce((acc, g) => acc + g.get('members'), 0)
 	});
 });
 
@@ -47,19 +71,19 @@ server.post('/client', async (req, res) => {
 	if (isNaN(tickets))
 		return res.status(400).send('400 Bad Request: "Invalid tickets count"');
 
-	let data = JSON.parse(fs.readFileSync(PATH));
+	const [client, created] = await Client.findOrCreate({
+		where: { id },
+		defaults: { id, tickets }
+	});
 
-	if (!data.clients[id]) {
-		data.clients[id] = {
-			tickets: 0
-		};
+	client.set('tickets', tickets);
+	await client.save();
+
+	if (created) {
 		res.status(201).send('201 CREATED');
 	} else {
 		res.status(200).send('200 OK');
 	}
-
-	data.clients[id].tickets = tickets;
-	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
 server.post('/guild', async (req, res) => {
@@ -76,21 +100,21 @@ server.post('/guild', async (req, res) => {
 		return res.status(400).send('400 Bad Request: "Invalid ID"');
 
 	if (isNaN(members))
-		return res.status(400).send('400 Bad Request: "Invalid member count"');
+		return res.status(400).send('400 Bad Request: "Invalid members count"');
 
-	let data = JSON.parse(fs.readFileSync(PATH));
+	const [guild, created] = await Guild.findOrCreate({
+		where: { id },
+		defaults: { id, members }
+	});
 
-	if (!data.guilds[id]) {
-		data.guilds[id] = {
-			members: 0
-		};
+	guild.set('members', members);
+	await guild.save();
+
+	if (created) {
 		res.status(201).send('201 CREATED');
 	} else {
 		res.status(200).send('200 OK');
 	}
-
-	data.guilds[id].members = members;
-	fs.writeFileSync(PATH, JSON.stringify(data));
 });
 
 server.listen(PORT, () => {

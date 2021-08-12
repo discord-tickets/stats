@@ -1,4 +1,4 @@
-data.json
-.env
 node_modules/
 logs/
+.env
+database.sqlite
