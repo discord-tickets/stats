@@ -33,5 +33,3 @@ The data with IDs is **not** publicly available, it is used to create an overvie
 which can be fetched from [stats.discordtickets.app](https://stats.discordtickets.app/).
 
 If you don't want to be included in these statistics, you can prevent the bot from sending the data by setting `super_secret_setting` in [config.js](https://github.com/discord-tickets/bot/blob/master/user/example.config.js) to `false`.
-
-Hosted with [replit always-on](https://docs.repl.it/repls/always-on).

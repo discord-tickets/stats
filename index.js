@@ -1,12 +1,8 @@
 require('dotenv').config();
-
-const PATH = './data.json';
 const { PORT } = process.env;
-
+const regex = /\d{17,19}/;
+const PATH = './data.json';
 const fs = require('fs');
-const fetch = require('node-fetch');
-const app = require('express')();
-const cors = require('cors');
 
 if (!fs.existsSync(PATH)) {
 	let data = {
@@ -16,9 +12,14 @@ if (!fs.existsSync(PATH)) {
 	fs.writeFileSync(PATH, JSON.stringify(data));
 }
 
-const regex = /\d{17,19}/;
-
+const app = require('express')();
+const cors = require('cors');
 app.use(cors());
+const ExpressLogger = require('leekslazylogger-express');
+const log = new ExpressLogger({
+	name: 'Discord Tickets Stats',
+});
+app.use(log.express());
 
 app.get('/', (req, res) => {
 	let { clients, guilds } = JSON.parse(fs.readFileSync(PATH));
@@ -93,5 +94,5 @@ app.post('/guild', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-	console.log(`Listening on port ${PORT}`);
+	log.success(`Listening on port ${PORT}`);
 });
