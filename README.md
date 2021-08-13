@@ -18,7 +18,7 @@ This data is stored in two database tables. The guilds are not connected to the 
 
 This data is used to generate the statistics at [stats.discordtickets.app](https://stats.discordtickets.app/), which is used on the home page.
 
-```json
+```js
 {
 	"clients": 1,
 	"tickets": 426, // all of the ticket counts added together
