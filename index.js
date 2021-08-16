@@ -15,23 +15,31 @@ const sequelize = new Sequelize({
 
 class Client extends Model { }
 Client.init({
+	guilds: {
+		allowNull: false,
+		defaultValue: 0,
+		type: DataTypes.NUMBER
+	},
 	id: {
 		allowNull: false,
 		primaryKey: true,
 		type: DataTypes.CHAR(19)
 	},
-	tickets: DataTypes.NUMBER
-}, { sequelize, modelName: 'client' });
-
-class Guild extends Model { }
-Guild.init({
-	id: {
+	members: {
 		allowNull: false,
-		primaryKey: true,
-		type: DataTypes.CHAR(19)
+		defaultValue: 0,
+		type: DataTypes.NUMBER
 	},
-	members: DataTypes.NUMBER
-}, { sequelize, modelName: 'guild' });
+	tickets: {
+		allowNull: false,
+		defaultValue: 0,
+		type: DataTypes.NUMBER
+	},
+	version: DataTypes.STRING
+}, {
+	modelName: 'client',
+	sequelize
+});
 
 sequelize.sync();
 
@@ -39,41 +47,100 @@ const server = require('fastify')();
 const cors = require('fastify-cors');
 server.register(cors);
 const Logger = require('leekslazylogger-fastify');
-const log = new Logger({
-	name: 'Discord Tickets Stats',
-});
+const log = new Logger({ name: 'Discord Tickets Stats' });
 server.register(log.fastify());
 
 server.get('/', async (req, res) => {
-	const { count: client_count, rows: clients } = await Client.findAndCountAll();
-	const { count: guild_count, rows: guilds } = await Guild.findAndCountAll();
+	const {
+		count: client_count, rows: clients
+	} = await Client.findAndCountAll();
 	res.send({
 		clients: client_count,
-		tickets: clients.reduce((acc, c) => acc + c.get('tickets'), 0),
-		guilds: guild_count,
-		members: guilds.reduce((acc, g) => acc + g.get('members'), 0)
+		guilds: clients.reduce((acc, c) => acc + c.get('guilds'), 0),
+		members: clients.reduce((acc, c) => acc + c.get('members'), 0),
+		tickets: clients.reduce((acc, c) => acc + c.get('tickets'), 0)
 	});
 });
 
-server.post('/client', async (req, res) => {
-	if (!req.query || !req.query.id)
-		return res.status(400).send('400 Bad Request: "Missing ID"');
-	
-	if (!req.query.tickets)
-		return res.status(400).send('400 Bad Request: "Missing tickets"');
+server.post('/v2', async (req, res) => {
+	const {
+		client: id,
+		guilds,
+		members,
+		tickets,
+		version
+	} = req.body;
 
-	let { id, tickets } = req.query;
+	if (
+		typeof id !== 'string' ||
+		typeof guilds !== 'number' ||
+		typeof members !== 'number' ||
+		typeof tickets !== 'number' ||
+		typeof version !== 'string'
+	) {
+		return res.status(400).send('400 BAD REQUEST: "Missing fields"');
+	}
+
+	if(!regex.test(id)) {
+		return res.status(400).send('400 BAD REQUEST: "Invalid client ID"');
+	}
+
+	const [row, created] = await Client.findOrCreate({
+		defaults: {
+			guilds,
+			id,
+			members,
+			tickets,
+			version
+		},
+		where: { id }
+	});
+
+	row.set('guilds', guilds);
+	row.set('members', members);
+	row.set('tickets', tickets);
+	row.set('version', version);
+	await row.save();
+
+	if (created) {
+		res.status(201).send('201 CREATED');
+	} else {
+		res.status(200).send('200 OK');
+	}
+});
+
+
+/**
+ * @deprecated
+ */
+server.post('/client', async (req, res) => {
+	if (!req.query || !req.query.id) {
+		return res.status(400).send('400 BAD REQUEST: "Missing ID"');
+	}
+
+	if (!req.query.tickets) {
+		return res.status(400).send('400 BAD REQUEST: "Missing tickets"');
+	}
+
+	let {
+		id, tickets
+	} = req.query;
 	tickets = Number(tickets);
 
-	if (!regex.test(id))
-		return res.status(400).send('400 Bad Request: "Invalid ID"');
+	if (!regex.test(id)) {
+		return res.status(400).send('400 BAD REQUEST: "Invalid ID"');
+	}
 
-	if (isNaN(tickets))
-		return res.status(400).send('400 Bad Request: "Invalid tickets count"');
+	if (isNaN(tickets)) {
+		return res.status(400).send('400 BAD REQUEST: "Invalid tickets count"');
+	}
 
 	const [client, created] = await Client.findOrCreate({
-		where: { id },
-		defaults: { id, tickets }
+		defaults: {
+			id,
+			tickets
+		},
+		where: { id }
 	});
 
 	client.set('tickets', tickets);
@@ -86,35 +153,11 @@ server.post('/client', async (req, res) => {
 	}
 });
 
+/**
+ * @deprecated
+ */
 server.post('/guild', async (req, res) => {
-	if (!req.query || !req.query.id)
-		return res.status(400).send('400 Bad Request: "Missing ID"');
-
-	if (!req.query.members)
-		return res.status(400).send('400 Bad Request: "Missing members"');
-
-	let { id, members } = req.query;
-	members = Number(members);
-
-	if (!regex.test(id))
-		return res.status(400).send('400 Bad Request: "Invalid ID"');
-
-	if (isNaN(members))
-		return res.status(400).send('400 Bad Request: "Invalid members count"');
-
-	const [guild, created] = await Guild.findOrCreate({
-		where: { id },
-		defaults: { id, members }
-	});
-
-	guild.set('members', members);
-	await guild.save();
-
-	if (created) {
-		res.status(201).send('201 CREATED');
-	} else {
-		res.status(200).send('200 OK');
-	}
+	res.status(410).send('410 GONE: "Please update to Discord Tickets v3.1.0"');
 });
 
 server.listen(PORT, () => {

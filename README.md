@@ -1,29 +1,27 @@
 # stats
 
-A simple API which provides basic statistics for Discord Tickets.
+> A simple API which provides basic statistics for Discord Tickets.
 
-Discord Tickets periodically sends its client ID along with the number of tickets in the bot's database. The bot also sends the ID of every guild in its cache, along with the approximate member count of each guild.
+Unless you disable it, Discord Tickets periodically sends statistical data to `stats.discordtickets.app`:
 
-This data is stored in two database tables. The guilds are not connected to the clients in any way.
+```json
+{
+	"client": "475371285531066368",
+	"guilds": 1,
+	"members": 548,
+	"tickets": 426,
+	"version": "3.0.0"
+}
+```
 
-- "clients" table
-	|         id         | tickets |
-	|--------------------|---------|
-	| 475371285531066368 |   426   |
+This data is used to generate the statistics at [stats.discordtickets.app](https://stats.discordtickets.app/), which is used on the [home page](https://discordtickets.app).
 
-- "guilds" table
-	|         id         | members |
-	|--------------------|---------|
-	| 451745464480432129 |   548   |
-
-This data is used to generate the statistics at [stats.discordtickets.app](https://stats.discordtickets.app/), which is used on the home page.
-
-```js
+```json
 {
 	"clients": 1,
-	"tickets": 426, // all of the ticket counts added together
+	"tickets": 426,
 	"guilds": 1,
-	"members": 548 // all of the member counts added together
+	"members": 548
 }
 ```
 

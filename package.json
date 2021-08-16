@@ -1,8 +1,8 @@
 {
 	"name": "discord-tickets-stats",
 	"private": true,
-	"description": "",
-	"version": "1.0.0",
+	"description": "A simple API which provides basic statistics for Discord Tickets.",
+	"version": "2.0.0",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
