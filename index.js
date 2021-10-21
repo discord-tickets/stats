@@ -1,12 +1,21 @@
 require('dotenv').config();
-const { PORT } = process.env;
+const {
+	PORT,
+	RATELIMIT_MAX,
+	RATELIMIT_TIME
+} = process.env;
 const regex = /\d{17,19}/;
+
+if (!PORT || !RATELIMIT_MAX || !RATELIMIT_TIME) {
+	throw new Error('Environment is not defined');
+}
 
 const {
 	DataTypes,
 	Model,
 	Sequelize
 } = require('sequelize');
+
 const sequelize = new Sequelize({
 	dialect: 'sqlite',
 	logging: text => log.debug(text),
@@ -46,14 +55,21 @@ sequelize.sync();
 const server = require('fastify')();
 const cors = require('fastify-cors');
 server.register(cors);
+
 const Logger = require('leekslazylogger-fastify');
 const log = new Logger({ name: 'Discord Tickets Stats' });
 server.register(log.fastify());
 
-server.get('/', async (req, res) => {
+server.register(require('fastify-rate-limit'), {
+	max: RATELIMIT_MAX,
+	timeWindow: RATELIMIT_TIME
+});
+
+server.get('/', async (_req, res) => {
 	const {
 		count: client_count, rows: clients
 	} = await Client.findAndCountAll();
+
 	res.send({
 		clients: client_count,
 		guilds: clients.reduce((acc, c) => acc + c.get('guilds'), 0),
@@ -81,7 +97,7 @@ server.post('/v2', async (req, res) => {
 		return res.status(400).send('400 BAD REQUEST: "Missing fields"');
 	}
 
-	if(!regex.test(id)) {
+	if (!regex.test(id)) {
 		return res.status(400).send('400 BAD REQUEST: "Invalid client ID"');
 	}
 
@@ -156,7 +172,7 @@ server.post('/client', async (req, res) => {
 /**
  * @deprecated
  */
-server.post('/guild', async (req, res) => {
+server.post('/guild', async (_req, res) => {
 	res.status(410).send('410 GONE: "Please update to Discord Tickets v3.1.0"');
 });
 
