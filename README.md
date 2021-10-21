@@ -25,4 +25,4 @@ This data is used to generate the statistics at [stats.discordtickets.app](https
 }
 ```
 
-If you don't want to be included in these statistics, you can prevent the bot from sending the data by setting `super_secret_setting` in [config.js](https://github.com/discord-tickets/bot/blob/master/user/example.config.js) to `false`.
+If you don't want to be included in these statistics, you can prevent the bot from sending the data by setting `super_secret_setting` in [config.js](https://github.com/discord-tickets/bot/blob/main/user/example.config.js) to `false`.
