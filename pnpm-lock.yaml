@@ -1,12 +1,14 @@
 lockfileVersion: 5.3
 
 specifiers:
+  '@firebase/app-compat': ^0.1.25
   eslint: ^7.32.0
   firebase-admin: ^10.2.0
   md5: ^2.3.0
 
 dependencies:
-  firebase-admin: 10.2.0
+  '@firebase/app-compat': 0.1.25
+  firebase-admin: 10.2.0_@firebase+app-compat@0.1.25
   md5: 2.3.0
 
 devDependencies:
@@ -51,8 +53,28 @@ packages:
       - supports-color
     dev: true
 
+  /@firebase/app-compat/0.1.25:
+    resolution: {integrity: sha512-FdCnYwIM3R+OuRE7nrAdVT5oNlvSAHQHN1ictB/gjCFs58lXMCe0DCIRDrA7zxaOFIKeWPtx35ZNXv3EdPFNpQ==}
+    dependencies:
+      '@firebase/app': 0.7.24
+      '@firebase/component': 0.5.14
+      '@firebase/logger': 0.3.2
+      '@firebase/util': 1.6.0
+      tslib: 2.4.0
+    dev: false
+
   /@firebase/app-types/0.7.0:
     resolution: {integrity: sha512-6fbHQwDv2jp/v6bXhBw2eSRbNBpxHcd1NBF864UksSMVIqIyri9qpJB1Mn6sGZE+bnDsSQBC5j2TbMxYsJQkQg==}
+    dev: false
+
+  /@firebase/app/0.7.24:
+    resolution: {integrity: sha512-HIbAhayEykbCez1Rl6pmzAWbIx63Mc9+t3ngWKqZdkMnBNAAJvYaUdx7Krus7O9XHUKNw/gzBUETAEYt93jusA==}
+    dependencies:
+      '@firebase/component': 0.5.14
+      '@firebase/logger': 0.3.2
+      '@firebase/util': 1.6.0
+      idb: 7.0.1
+      tslib: 2.4.0
     dev: false
 
   /@firebase/auth-interop-types/0.1.6_@firebase+util@1.5.2:
@@ -71,11 +93,19 @@ packages:
       tslib: 2.4.0
     dev: false
 
-  /@firebase/database-compat/0.1.8:
+  /@firebase/component/0.5.14:
+    resolution: {integrity: sha512-ct2p1MTMV5P/nGIlkC3XjAVwHwjsIZaeo8JVyDAkJCNTROu5mYX3FBK16hjIUIIVJDpgnnzFh9nP74gciL4WrA==}
+    dependencies:
+      '@firebase/util': 1.6.0
+      tslib: 2.4.0
+    dev: false
+
+  /@firebase/database-compat/0.1.8_@firebase+app-compat@0.1.25:
     resolution: {integrity: sha512-dhXr5CSieBuKNdU96HgeewMQCT9EgOIkfF1GNy+iRrdl7BWLxmlKuvLfK319rmIytSs/vnCzcD9uqyxTeU/A3A==}
     peerDependencies:
       '@firebase/app-compat': 0.x
     dependencies:
+      '@firebase/app-compat': 0.1.25
       '@firebase/component': 0.5.13
       '@firebase/database': 0.12.8
       '@firebase/database-types': 0.9.7
@@ -849,11 +879,11 @@ packages:
       flat-cache: 3.0.4
     dev: true
 
-  /firebase-admin/10.2.0:
+  /firebase-admin/10.2.0_@firebase+app-compat@0.1.25:
     resolution: {integrity: sha512-6ehn5J9UEFgi4+naqYvozmGpnZae3cJLdwSkSsDc8/Y0eTBjVMFdf9N2ft7N81UNHA0N5DknOyXhlsdAdyBLCA==}
     engines: {node: '>=12.7.0'}
     dependencies:
-      '@firebase/database-compat': 0.1.8
+      '@firebase/database-compat': 0.1.8_@firebase+app-compat@0.1.25
       '@firebase/database-types': 0.9.8
       '@types/node': 16.6.0
       dicer: 0.3.1
@@ -1065,6 +1095,10 @@ packages:
       - supports-color
     dev: false
     optional: true
+
+  /idb/7.0.1:
+    resolution: {integrity: sha512-UUxlE7vGWK5RfB/fDwEGgRf84DY/ieqNha6msMV99UsEMQhJ1RwbCd8AYBj3QMgnE3VZnfQvm4oKVCJTYlqIgg==}
+    dev: false
 
   /ignore/4.0.6:
     resolution: {integrity: sha512-cyFDKrqc/YdcWFniJhzI42+AzS+gNwmUzOSFcRCQYwySuBBBy/KjuxWLZ/FHEH6Moq1NizMOBWyTcv8O4OZIMg==}
