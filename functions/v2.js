@@ -15,7 +15,13 @@ initializeApp({ credential: cert(serviceAccount) });
 const db = getFirestore();
 
 exports.handler = async event => {
-	console.log(event);
+	if (event.httpMethod !== 'POST') {
+		return {
+			body: 'Method Not Allowed',
+			statusCode: 405,
+		};
+	}
+
 	const {
 		client: id,
 		guilds,
@@ -32,14 +38,14 @@ exports.handler = async event => {
 		typeof version !== 'string'
 	) {
 		return {
-			body: '400 BAD REQUEST: "Missing or invalid fields"',
+			body: 'Missing or invalid fields',
 			statusCode: 400,
 		};
 	}
 
 	if (!regex.test(id)) {
 		return {
-			body: '400 BAD REQUEST: "Invalid client ID"',
+			body: 'Invalid client ID',
 			statusCode: 400,
 		};
 	}
