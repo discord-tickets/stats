@@ -1,6 +1,4 @@
-node_modules/
-.vscode/
-logs/
+.netlify
+node_modules
 
 .env
-database.sqlite

@@ -1,0 +1,20 @@
+[build]
+  publish = "public/"
+
+[context.production]
+  environment = { NODE_VERSION = "14.15.3" }
+
+[functions]
+  directory = "functions/"
+
+[[redirects]]
+  from = "/client"
+  to = "/.netlify/functions/client"
+
+[[redirects]]
+  from = "/v2"
+  to = "/.netlify/functions/v2"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"

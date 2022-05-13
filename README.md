@@ -1,5 +1,7 @@
 # stats
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/869755ed-5e4c-4eee-9906-83dde91af548/deploy-status)](https://app.netlify.com/sites/dt-stats/deploys)
+
 > A simple API which provides basic statistics for Discord Tickets.
 
 Unless you disable it, Discord Tickets periodically sends statistical data to `stats.discordtickets.app`:
