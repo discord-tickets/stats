@@ -3,17 +3,18 @@
 	"private": true,
 	"description": "A simple API which provides basic statistics for Discord Tickets.",
 	"version": "2.0.0",
-	"main": "index.js",
+	"main": "./index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"dependencies": {
-		"@firebase/app-compat": "^0.1.25",
-		"firebase-admin": "^10.2.0",
+		"@supabase/supabase-js": "^1.35.3",
+		"itty-router": "^2.6.1",
+		"joi": "^17.6.0",
 		"md5": "^2.3.0"
 	},
 	"devDependencies": {
-		"eslint": "^7.32.0"
+		"eslint": "^8.15.0"
 	},
 	"repository": {
 		"type": "git",

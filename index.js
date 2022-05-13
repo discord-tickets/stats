@@ -1,181 +1,45 @@
-require('dotenv').config();
-const {
-	PORT,
-	RATELIMIT_MAX,
-	RATELIMIT_TIME
-} = process.env;
-const regex = /\d{17,19}/;
+import { Router } from 'itty-router';
+import { createClient } from '@supabase/supabase-js';
+import joi from 'joi';
 
-if (!PORT || !RATELIMIT_MAX || !RATELIMIT_TIME) {
-	throw new Error('Environment is not defined');
-}
+const router = Router();
+// eslint-disable-next-line no-undef
+const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET);
 
-const {
-	DataTypes,
-	Model,
-	Sequelize
-} = require('sequelize');
+router.get('/');
 
-const sequelize = new Sequelize({
-	dialect: 'sqlite',
-	logging: text => log.debug(text),
-	storage: 'database.sqlite'
-});
+router.post('/client');
 
-class Client extends Model { }
-Client.init({
-	guilds: {
-		allowNull: false,
-		defaultValue: 0,
-		type: DataTypes.NUMBER
-	},
-	id: {
-		allowNull: false,
-		primaryKey: true,
-		type: DataTypes.CHAR(19)
-	},
-	members: {
-		allowNull: false,
-		defaultValue: 0,
-		type: DataTypes.NUMBER
-	},
-	tickets: {
-		allowNull: false,
-		defaultValue: 0,
-		type: DataTypes.NUMBER
-	},
-	version: DataTypes.STRING
-}, {
-	modelName: 'client',
-	sequelize
-});
+router.get('/api/v3/current');
 
-sequelize.sync();
+router.get('/api/v3/history');
 
-const server = require('fastify')();
-const cors = require('fastify-cors');
-server.register(cors);
+router.post('/api/v3/houston');
 
-const Logger = require('leekslazylogger-fastify');
-const log = new Logger({ name: 'Discord Tickets Stats' });
-server.register(log.fastify());
 
-server.register(require('fastify-rate-limit'), {
-	max: RATELIMIT_MAX,
-	timeWindow: RATELIMIT_TIME
-});
-
-server.get('/', async (_req, res) => {
+router.post('/v2', async request => {
+	const body = await request.json();
+	const schema = joi.object({
+		client: joi.string().required(),
+		guilds: joi.number().integer().required(),
+		members: joi.number().integer().required(),
+		tickets: joi.number().integer().required(),
+		version: joi.string(),
+	});
 	const {
-		count: client_count, rows: clients
-	} = await Client.findAndCountAll();
+		error,
+		value,
+	} = schema.validate(body);
 
-	res.send({
-		clients: client_count,
-		guilds: clients.reduce((acc, c) => acc + c.get('guilds'), 0),
-		members: clients.reduce((acc, c) => acc + c.get('members'), 0),
-		tickets: clients.reduce((acc, c) => acc + c.get('tickets'), 0)
-	});
+	if (error) return new Response(error, { status: 400 });
+
+	return new Response('OK', { status: 200 });
 });
 
-server.post('/v2', async (req, res) => {
-	const {
-		client: id,
-		guilds,
-		members,
-		tickets,
-		version
-	} = req.body;
+router.all('*', () => new Response('Not Found', { status: 404 }));
 
-	if (
-		typeof id !== 'string' ||
-		typeof guilds !== 'number' ||
-		typeof members !== 'number' ||
-		typeof tickets !== 'number' ||
-		typeof version !== 'string'
-	) {
-		return res.status(400).send('400 BAD REQUEST: "Missing fields"');
-	}
+addEventListener('fetch', event => event.respondWith(router.handle(event.request)));
 
-	if (!regex.test(id)) {
-		return res.status(400).send('400 BAD REQUEST: "Invalid client ID"');
-	}
-
-	const [row, created] = await Client.findOrCreate({
-		defaults: {
-			guilds,
-			id,
-			members,
-			tickets,
-			version
-		},
-		where: { id }
-	});
-
-	row.set('guilds', guilds);
-	row.set('members', members);
-	row.set('tickets', tickets);
-	row.set('version', version);
-	await row.save();
-
-	if (created) {
-		res.status(201).send('201 CREATED');
-	} else {
-		res.status(200).send('200 OK');
-	}
-});
-
-
-/**
- * @deprecated
- */
-server.post('/client', async (req, res) => {
-	if (!req.query || !req.query.id) {
-		return res.status(400).send('400 BAD REQUEST: "Missing ID"');
-	}
-
-	if (!req.query.tickets) {
-		return res.status(400).send('400 BAD REQUEST: "Missing tickets"');
-	}
-
-	let {
-		id, tickets
-	} = req.query;
-	tickets = Number(tickets);
-
-	if (!regex.test(id)) {
-		return res.status(400).send('400 BAD REQUEST: "Invalid ID"');
-	}
-
-	if (isNaN(tickets)) {
-		return res.status(400).send('400 BAD REQUEST: "Invalid tickets count"');
-	}
-
-	const [client, created] = await Client.findOrCreate({
-		defaults: {
-			id,
-			tickets
-		},
-		where: { id }
-	});
-
-	client.set('tickets', tickets);
-	await client.save();
-
-	if (created) {
-		res.status(201).send('201 CREATED');
-	} else {
-		res.status(200).send('200 OK');
-	}
-});
-
-/**
- * @deprecated
- */
-server.post('/guild', async (_req, res) => {
-	res.status(410).send('410 GONE: "Please update to Discord Tickets v3.1.0"');
-});
-
-server.listen(PORT, () => {
-	log.success(`Listening on port ${PORT}`);
-});
+addEventListener('scheduled', event => event.waitUntil(async event => {
+	// create a snapshot
+}));

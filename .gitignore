@@ -1,4 +1,4 @@
-.netlify
 node_modules
-
+dist
+worker
 .env
