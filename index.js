@@ -9,7 +9,27 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET);
 
 router.get('/');
 
-router.post('/client');
+router.post('/client', async request => {
+	const body = await request.json();
+	const schema = joi.object({
+		id: joi.string().required(),
+		tickets: joi.number().integer().required(),
+	});
+	const {
+		error: validationError,
+		value,
+	} = schema.validate(body);
+
+	if (validationError) return new Response(validationError, { status: 400 });
+
+	value.id = md5(value.id);
+	value.last_seen = new Date();
+
+	const { error } = await supabase.from('stats:clients').upsert(value, { returning: 'minimal' });
+
+	if (error) return new Response(error, { status: 500 });
+	else return new Response('OK', { status: 200 });
+});
 
 router.get('/api/v3/current');
 
