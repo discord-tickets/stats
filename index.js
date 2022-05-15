@@ -97,7 +97,6 @@ router.get('/', async () => {
 		members: data.reduce((acc, row) => acc + row.members, 0),
 		tickets: data.reduce((acc, row) => acc + row.tickets, 0),
 	};
-
 	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
 });
 
