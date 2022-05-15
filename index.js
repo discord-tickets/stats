@@ -116,7 +116,6 @@ router.post('/api/v3/houston', async request => await updateClient(request, fals
 
 router.post('/v2', async request => await updateClient(request, true));
 
-
 router.all('*', () => new Response('Not Found', { status: 404 }));
 
 addEventListener('fetch', event => event.respondWith(router.handle(event.request)));
@@ -132,25 +131,18 @@ addEventListener('scheduled', event => event.waitUntil(async () => {
 			error,
 		} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 		if (error) return new Response(error, { status: 500 });
-		const activeClients = data.filter(row => isActive(row.last_seen));
 		const stats = {
 			activated_users: sum(data, 'activated_users'),
 			avg_response_time: sum(data, 'avg_response_time') / data.length,
 			categories: sum(data, 'categories'),
-			clients: {
-				active: data.length,
-				total: activeClients.length,
-			},
-			guilds: {
-				active: sum(data, 'guilds'),
-				total: sum(activeClients, 'guilds'),
-			},
+			clients: data.length,
+			guilds: sum(data, 'guilds'),
 			members: sum(data, 'members'),
 			messages: sum(data, 'messages'),
-			node: transform(activeClients, 'node'),
-			os: transform(activeClients, 'os'),
 			tags: sum(data, 'tags'),
-			tickets: sum(data, 'tags'),
+			tickets: sum(data, 'tickets'),
 		};
+		stats.date = new Date();
+		await supabase.from('stats:snapshots').insert(stats);
 	}
 }));
