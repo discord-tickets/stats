@@ -78,7 +78,7 @@ router.get('/api/v3/current', async request => {
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
-		arch: transform(data, 'arch'),
+		arch: transform(activeClients, 'arch'),
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: {
@@ -91,11 +91,11 @@ router.get('/api/v3/current', async request => {
 		},
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
-		node: transform(data, 'node'),
-		os: transform(data, 'os'),
+		node: transform(activeClients, 'node'),
+		os: transform(activeClients, 'os'),
 		tags: sum(data, 'tags'),
 		tickets: sum(data, 'tags'),
-		version: transform(data, 'version'),
+		version: transform(activeClients, 'version'),
 	};
 
 	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
