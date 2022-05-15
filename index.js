@@ -63,12 +63,12 @@ const updateCache = async () => {
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: {
-			active: data.length,
-			total: activeClients.length,
+			active: activeClients.length,
+			total: data.length,
 		},
 		guilds: {
-			active: sum(data, 'guilds'),
-			total: sum(activeClients, 'guilds'),
+			active: sum(activeClients, 'guilds'),
+			total: sum(data, 'guilds'),
 		},
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
