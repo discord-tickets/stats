@@ -27,13 +27,10 @@ async function updateStats(request, compatMode = false) {
 		error: validationError,
 		value,
 	} = schema.validate(body);
-
 	if (validationError) return new Response(validationError, { status: 400 });
-
 	if (compatMode) value.id = md5(value.id);
-
+	value.last_seen = new Date();
 	const { error } = await supabase.from('stats:clients').upsert(value, { returning: 'minimal' });
-
 	if (error) return new Response(error, { status: 500 });
 	else return new Response('OK', { status: 200 });
 }
@@ -44,7 +41,17 @@ router.get('/');
 
 router.post('/client', async request => await updateStats(request, true));
 
-router.get('/api/v3/current');
+router.get('/api/v3/current', async request => {
+	const {
+		data,
+		error,
+	} = await supabase.from('stats:clients').select();
+
+	if (error) return new Response(error, { status: 500 });
+
+	console.log(data)
+	return new Response(data);
+});
 
 router.get('/api/v3/history');
 
