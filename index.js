@@ -18,11 +18,14 @@ const schema = joi.object({
 	tickets: joi.number().integer().required(),
 	version: joi.string().pattern(/^\d+\.\d+\.\d+$/),
 }).rename('client', 'id');
+
 // eslint-disable-next-line no-undef
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET);
 
 const isActive = lastSeen => (Date.now() - Date.parse(lastSeen)) / 1000 / 60 / 60 / 24 < 30;
+
 const sum = (data, prop) => data.reduce((acc, row) => acc + row[prop], 0);
+
 const transform = (data, prop) => {
 	const counts = data.reduce(($, row) => (($[row[prop]] += 1) || ($[row[prop]] = 1), $), {});
 	return Object.keys(counts)
@@ -32,7 +35,8 @@ const transform = (data, prop) => {
 		}))
 		.sort((a, b) => b.count - a.count);
 };
-const updateStats = async (request, compatMode = false) => {
+
+const updateClient = async (request, compatMode = false) => {
 	const body = await request.json();
 	const {
 		error: validationError,
@@ -45,36 +49,13 @@ const updateStats = async (request, compatMode = false) => {
 	if (error) return new Response(error, { status: 500 });
 	else return new Response('OK', { status: 200 });
 };
-const router = Router();
 
-router.get('/', async request => {
-	const {
-		data,
-		error,
-	} = await supabase.from('stats:clients').select('guilds, members, tickets'); // IMPORTANT: returns max 10,000 rows
-
-	if (error) return new Response(error, { status: 500 });
-
-	const stats = {
-		clients: data.length,
-		guilds: data.reduce((acc, row) => acc + row.guilds, 0),
-		members: data.reduce((acc, row) => acc + row.members, 0),
-		tickets: data.reduce((acc, row) => acc + row.tickets, 0),
-	};
-
-	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
-});
-
-router.post('/client', async request => await updateStats(request, true));
-
-router.get('/api/v3/current', async request => {
+const updateCache = async () => {
 	const {
 		data,
 		error,
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
-
 	if (error) return new Response(error, { status: 500 });
-
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
@@ -97,21 +78,54 @@ router.get('/api/v3/current', async request => {
 		tickets: sum(data, 'tags'),
 		version: transform(activeClients, 'version'),
 	};
+	// eslint-disable-next-line no-undef
+	await CACHE.put('dt:stats', JSON.stringify(stats), { expirationTtl: 3660 }); // 61 min
+	return stats;
+};
 
+const router = Router();
+
+router.get('/', async () => {
+	const {
+		data,
+		error,
+	} = await supabase.from('stats:clients').select('guilds, members, tickets'); // IMPORTANT: returns max 10,000 rows
+	if (error) return new Response(error, { status: 500 });
+	const stats = {
+		clients: data.length,
+		guilds: data.reduce((acc, row) => acc + row.guilds, 0),
+		members: data.reduce((acc, row) => acc + row.members, 0),
+		tickets: data.reduce((acc, row) => acc + row.tickets, 0),
+	};
+
+	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
+});
+
+router.post('/client', async request => await updateClient(request, true));
+
+router.get('/api/v3/current', async () => {
+	// eslint-disable-next-line no-undef
+	let stats = await CACHE.get('dt:stats', { type: 'json' });
+	if (!stats) stats = await updateCache();
 	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
 });
 
 router.get('/api/v3/history');
 
-router.post('/api/v3/houston', async request => await updateStats(request, false));
+router.post('/api/v3/houston', async request => await updateClient(request, false));
 
-router.post('/v2', async request => await updateStats(request, true));
+router.post('/v2', async request => await updateClient(request, true));
 
 
 router.all('*', () => new Response('Not Found', { status: 404 }));
 
 addEventListener('fetch', event => event.respondWith(router.handle(event.request)));
 
-addEventListener('scheduled', event => event.waitUntil(async event => {
-	// create a snapshot
+addEventListener('scheduled', event => event.waitUntil(async () => {
+	if (event.cron === '0 * * * *') { // every hour
+		// update cache
+		await updateCache();
+	} else if (event.cron === '0 0 * * *') { // every day
+		// create a snapshot
+	}
 }));
