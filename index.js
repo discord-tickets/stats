@@ -37,7 +37,23 @@ async function updateStats(request, compatMode = false) {
 
 const router = Router();
 
-router.get('/');
+router.get('/', async request => {
+	const {
+		data,
+		error,
+	} = await supabase.from('stats:clients').select('guilds, members, tickets'); // IMPORTANT: returns max 10,000 rows
+
+	if (error) return new Response(error, { status: 500 });
+
+	const stats = {
+		clients: data.length,
+		guilds: data.reduce((acc, row) => acc + row.guilds, 0),
+		members: data.reduce((acc, row) => acc + row.members, 0),
+		tickets: data.reduce((acc, row) => acc + row.tickets, 0),
+	};
+
+	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
+});
 
 router.post('/client', async request => await updateStats(request, true));
 
