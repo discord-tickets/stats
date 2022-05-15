@@ -46,7 +46,7 @@ const updateClient = async (request, compatMode = false) => {
 	if (compatMode) value.id = md5(value.id);
 	value.last_seen = new Date();
 	const { error } = await supabase.from('stats:clients').upsert(value, { returning: 'minimal' });
-	if (error) return new Response(error, { status: 500 });
+	if (error) return new Response(JSON.stringify(error), { status: 500 });
 	else return new Response('OK', { status: 200 });
 };
 
@@ -55,7 +55,7 @@ const updateCache = async () => {
 		data,
 		error,
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
-	if (error) return new Response(error, { status: 500 });
+	if (error) return new Response(JSON.stringify(error), { status: 500 });
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
@@ -90,7 +90,7 @@ router.get('/', async () => {
 		data,
 		error,
 	} = await supabase.from('stats:clients').select('guilds, members, tickets'); // IMPORTANT: returns max 10,000 rows
-	if (error) return new Response(error, { status: 500 });
+	if (error) return new Response(JSON.stringify(error), { status: 500 });
 	const stats = {
 		clients: data.length,
 		guilds: data.reduce((acc, row) => acc + row.guilds, 0),
@@ -110,7 +110,16 @@ router.get('/api/v3/current', async () => {
 	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
 });
 
-router.get('/api/v3/history');
+router.get('/api/v3/history', async request => {
+	const days = request.query.days || 30;
+	const date = new Date(Date.now() - (days * 24 * 60 * 60 * 1000)).toISOString().substring(0, 10); // yyyy-mm-dd
+	const {
+		data,
+		error,
+	} = await supabase.from('stats:snapshots').select('*').gte('date', date);
+	if (error) return new Response(JSON.stringify(error), { status: 500 });
+	else return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
+});
 
 router.post('/api/v3/houston', async request => await updateClient(request, false));
 
@@ -130,7 +139,7 @@ addEventListener('scheduled', event => event.waitUntil(async () => {
 			data,
 			error,
 		} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
-		if (error) return new Response(error, { status: 500 });
+		if (error) return new Response(JSON.stringify(error), { status: 500 });
 		const stats = {
 			activated_users: sum(data, 'activated_users'),
 			avg_response_time: sum(data, 'avg_response_time') / data.length,
