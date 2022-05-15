@@ -1,30 +1,19 @@
 # stats
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/869755ed-5e4c-4eee-9906-83dde91af548/deploy-status)](https://app.netlify.com/sites/dt-stats/deploys)
-
-> A simple API which provides basic statistics for Discord Tickets.
-
-Unless you disable it, Discord Tickets periodically sends statistical data to `stats.discordtickets.app`:
-
 ```json
 {
-	"client": "475371285531066368",
-	"guilds": 1,
-	"members": 548,
-	"tickets": 426,
-	"version": "3.0.0"
+  "activated_users": 26,
+  "arch": "arm64",
+  "avg_response_time": 32.7,
+  "categories": 2,
+  "guilds": 1,
+  "id": "7f4a58c0ff94c01eadef17e4b3c9f0a7",
+  "members": 600,
+  "messages": 347,
+  "node": "v17.0.0",
+  "os": "linux",
+  "tags": 1,
+  "tickets": 47,
+  "version": "3.1.3"
 }
 ```
-
-This data is used to generate the statistics at [stats.discordtickets.app](https://stats.discordtickets.app/), which is used on the [home page](https://discordtickets.app).
-
-```json
-{
-	"clients": 1,
-	"tickets": 426,
-	"guilds": 1,
-	"members": 548
-}
-```
-
-If you don't want to be included in these statistics, you can prevent the bot from sending the data by setting `super_secret_setting` in [config.js](https://github.com/discord-tickets/bot/blob/main/user/example.config.js) to `false`.

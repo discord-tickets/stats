@@ -21,7 +21,18 @@ const schema = joi.object({
 // eslint-disable-next-line no-undef
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET);
 
-async function updateStats(request, compatMode = false) {
+const isActive = lastSeen => (Date.now() - Date.parse(lastSeen)) / 1000 / 60 / 60 / 24 < 30;
+const sum = (data, prop) => data.reduce((acc, row) => acc + row[prop], 0);
+const transform = (data, prop) => {
+	const counts = data.reduce(($, row) => (($[row[prop]] += 1) || ($[row[prop]] = 1), $), {});
+	return Object.keys(counts)
+		.map(i => ({
+			count: counts[i],
+			name: i,
+		}))
+		.sort((a, b) => b.count - a.count);
+};
+const updateStats = async (request, compatMode = false) => {
 	const body = await request.json();
 	const {
 		error: validationError,
@@ -33,8 +44,7 @@ async function updateStats(request, compatMode = false) {
 	const { error } = await supabase.from('stats:clients').upsert(value, { returning: 'minimal' });
 	if (error) return new Response(error, { status: 500 });
 	else return new Response('OK', { status: 200 });
-}
-
+};
 const router = Router();
 
 router.get('/', async request => {
@@ -61,12 +71,34 @@ router.get('/api/v3/current', async request => {
 	const {
 		data,
 		error,
-	} = await supabase.from('stats:clients').select();
+	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 
 	if (error) return new Response(error, { status: 500 });
 
-	console.log(data)
-	return new Response(data);
+	const activeClients = data.filter(row => isActive(row.last_seen));
+	const stats = {
+		activated_users: sum(data, 'activated_users'),
+		arch: transform(data, 'arch'),
+		avg_response_time: sum(data, 'avg_response_time') / data.length,
+		categories: sum(data, 'categories'),
+		clients: {
+			active: data.length,
+			total: activeClients.length,
+		},
+		guilds: {
+			active: sum(data, 'guilds'),
+			total: sum(activeClients, 'guilds'),
+		},
+		members: sum(data, 'members'),
+		messages: sum(data, 'messages'),
+		node: transform(data, 'node'),
+		os: transform(data, 'os'),
+		tags: sum(data, 'tags'),
+		tickets: sum(data, 'tags'),
+		version: transform(data, 'version'),
+	};
+
+	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
 });
 
 router.get('/api/v3/history');
