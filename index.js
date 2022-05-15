@@ -75,7 +75,7 @@ const updateCache = async () => {
 		node: transform(activeClients, 'node'),
 		os: transform(activeClients, 'os'),
 		tags: sum(data, 'tags'),
-		tickets: sum(data, 'tags'),
+		tickets: sum(data, 'tickets'),
 		version: transform(activeClients, 'version'),
 	};
 	// eslint-disable-next-line no-undef
@@ -127,5 +127,30 @@ addEventListener('scheduled', event => event.waitUntil(async () => {
 		await updateCache();
 	} else if (event.cron === '0 0 * * *') { // every day
 		// create a snapshot
+		const {
+			data,
+			error,
+		} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
+		if (error) return new Response(error, { status: 500 });
+		const activeClients = data.filter(row => isActive(row.last_seen));
+		const stats = {
+			activated_users: sum(data, 'activated_users'),
+			avg_response_time: sum(data, 'avg_response_time') / data.length,
+			categories: sum(data, 'categories'),
+			clients: {
+				active: data.length,
+				total: activeClients.length,
+			},
+			guilds: {
+				active: sum(data, 'guilds'),
+				total: sum(activeClients, 'guilds'),
+			},
+			members: sum(data, 'members'),
+			messages: sum(data, 'messages'),
+			node: transform(activeClients, 'node'),
+			os: transform(activeClients, 'os'),
+			tags: sum(data, 'tags'),
+			tickets: sum(data, 'tags'),
+		};
 	}
 }));
