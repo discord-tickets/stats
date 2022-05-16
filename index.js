@@ -36,8 +36,7 @@ const transform = (data, prop) => {
 		.sort((a, b) => b.count - a.count);
 };
 
-const updateClient = async (request, compatMode = false) => {
-	const body = await request.json();
+const updateClient = async (body, compatMode = false) => {
 	const {
 		error: validationError,
 		value,
@@ -100,7 +99,7 @@ router.get('/', async () => {
 	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
 });
 
-router.post('/client', async request => await updateClient(request, true));
+router.post('/client', async request => await updateClient(request.query, true));
 
 router.get('/api/v3/current', async () => {
 	// eslint-disable-next-line no-undef
@@ -120,9 +119,9 @@ router.get('/api/v3/history', async request => {
 	else return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
 });
 
-router.post('/api/v3/houston', async request => await updateClient(request, false));
+router.post('/api/v3/houston', async request => await updateClient(await request.json(), false));
 
-router.post('/v2', async request => await updateClient(request, true));
+router.post('/v2', async request => await updateClient(await request.json(), true));
 
 router.all('*', () => new Response('Not Found', { status: 404 }));
 
