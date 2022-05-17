@@ -135,7 +135,7 @@ router.get('/api/v3/history', async request => {
 	const {
 		data,
 		error,
-	} = await supabase.from('stats:snapshots').select('*').gte('date', date).order('date', { ascending: false });
+	} = await supabase.from('stats:snapshots').select('*').gte('date', date); // .order('date', { ascending: false })
 	if (error) return new Response(JSON.stringify(error), { status: 500 });
 	else return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
 });
