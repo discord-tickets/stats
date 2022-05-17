@@ -82,6 +82,27 @@ const updateCache = async () => {
 	return stats;
 };
 
+const createSnapshot = async () => {
+	const {
+		data,
+		error,
+	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
+	if (error) return new Response(JSON.stringify(error), { status: 500 });
+	const stats = {
+		activated_users: sum(data, 'activated_users'),
+		avg_response_time: sum(data, 'avg_response_time') / data.length,
+		categories: sum(data, 'categories'),
+		clients: data.length,
+		guilds: sum(data, 'guilds'),
+		members: sum(data, 'members'),
+		messages: sum(data, 'messages'),
+		tags: sum(data, 'tags'),
+		tickets: sum(data, 'tickets'),
+	};
+	stats.date = new Date();
+	return await supabase.from('stats:snapshots').insert(stats);
+};
+
 const router = Router();
 
 router.get('/', async () => {
@@ -114,7 +135,7 @@ router.get('/api/v3/history', async request => {
 	const {
 		data,
 		error,
-	} = await supabase.from('stats:snapshots').select('*').gte('date', date);
+	} = await supabase.from('stats:snapshots').select('*').gte('date', date).order('date', { ascending: false });
 	if (error) return new Response(JSON.stringify(error), { status: 500 });
 	else return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
 });
@@ -128,28 +149,6 @@ router.all('*', () => new Response('Not Found', { status: 404 }));
 addEventListener('fetch', event => event.respondWith(router.handle(event.request)));
 
 addEventListener('scheduled', event => event.waitUntil(async () => {
-	if (event.cron === '0 * * * *') { // every hour
-		// update cache
-		await updateCache();
-	} else if (event.cron === '0 0 * * *') { // every day
-		// create a snapshot
-		const {
-			data,
-			error,
-		} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
-		if (error) return new Response(JSON.stringify(error), { status: 500 });
-		const stats = {
-			activated_users: sum(data, 'activated_users'),
-			avg_response_time: sum(data, 'avg_response_time') / data.length,
-			categories: sum(data, 'categories'),
-			clients: data.length,
-			guilds: sum(data, 'guilds'),
-			members: sum(data, 'members'),
-			messages: sum(data, 'messages'),
-			tags: sum(data, 'tags'),
-			tickets: sum(data, 'tickets'),
-		};
-		stats.date = new Date();
-		await supabase.from('stats:snapshots').insert(stats);
-	}
+	if (event.cron === '0 * * * *') await updateCache();  // every hour: update cache
+	else if (event.cron === '0 0 * * *') await createSnapshot();  // every day: create a snapshot
 }));
