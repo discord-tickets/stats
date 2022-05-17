@@ -93,13 +93,13 @@ const createSnapshot = async () => {
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: data.length,
+		date: new Date(),
 		guilds: sum(data, 'guilds'),
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
 		tags: sum(data, 'tags'),
 		tickets: sum(data, 'tickets'),
 	};
-	stats.date = new Date();
 	return await supabase.from('stats:snapshots').insert(stats);
 };
 
