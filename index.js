@@ -105,20 +105,7 @@ const createSnapshot = async () => {
 
 const router = Router();
 
-router.get('/', async () => {
-	const {
-		data,
-		error,
-	} = await supabase.from('stats:clients').select('guilds, members, tickets'); // IMPORTANT: returns max 10,000 rows
-	if (error) return new Response(JSON.stringify(error), { status: 500 });
-	const stats = {
-		clients: data.length,
-		guilds: data.reduce((acc, row) => acc + row.guilds, 0),
-		members: data.reduce((acc, row) => acc + row.members, 0),
-		tickets: data.reduce((acc, row) => acc + row.tickets, 0),
-	};
-	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
-});
+router.get('/', () => Response.redirect('https://grafana.eartharoid.me/goto/fqAqi2Xnz?orgId=1', 302));
 
 router.post('/client', async request => await updateClient(request.query, true));
 
