@@ -22,7 +22,7 @@ const schema = joi.object({
 // eslint-disable-next-line no-undef
 const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET);
 
-const isActive = lastSeen => (Date.now() - Date.parse(lastSeen)) / 1000 / 60 / 60 / 24 < 30;
+const isActive = lastSeen => (Date.now() - Date.parse(lastSeen)) / 1000 / 60 / 60 / 24 < 7;
 
 const sum = (data, prop) => data.reduce((acc, row) => acc + row[prop], 0);
 

@@ -1,5 +1,4 @@
 name = "stats"
-type = "webpack"
 route = 'stats.discordtickets.app/*'
 main = "./index.js"
 account_id = "97b58167ff9c21fe35e878e6a65654f8"
