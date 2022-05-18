@@ -113,7 +113,12 @@ router.get('/api/v3/current', async () => {
 	// eslint-disable-next-line no-undef
 	let stats = await CACHE.get('dt:stats', { type: 'json' });
 	if (!stats) stats = await updateCache();
-	return new Response(JSON.stringify(stats), { headers: { 'content-type': 'application/json' } });
+	return new Response(JSON.stringify(stats), {
+		headers: {
+			'access-control-allow-origin': '*',
+			'content-type': 'application/json',
+		},
+	});
 });
 
 router.get('/api/v3/history', async request => {
@@ -123,8 +128,16 @@ router.get('/api/v3/history', async request => {
 		data,
 		error,
 	} = await supabase.from('stats:snapshots').select('*').gte('date', date); // .order('date', { ascending: false })
-	if (error) return new Response(JSON.stringify(error), { status: 500 });
-	else return new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
+	if (error) {
+		return new Response(JSON.stringify(error), { status: 500 });
+	} else {
+		return new Response(JSON.stringify(data), {
+			headers: {
+				'access-control-allow-origin': '*',
+				'content-type': 'application/json',
+			},
+		});
+	}
 });
 
 router.post('/api/v3/houston', async request => await updateClient(await request.json(), false));
