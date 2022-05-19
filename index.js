@@ -158,6 +158,6 @@ router.all('*', () => new Response('Not Found', { status: 404 }));
 addEventListener('fetch', event => event.respondWith(router.handle(event.request)));
 
 addEventListener('scheduled', event => event.waitUntil(async () => {
-	if (event.cron === '0 * * * *') await updateCache();  // every hour: update cache
-	else if (event.cron === '0 0 * * *') await createSnapshot();  // every day: create a snapshot
+	await updateCache();  // every hour: update cache
+	if (new Date().getUTCHours() === 0) await createSnapshot();  // every day: create a snapshot
 }));
