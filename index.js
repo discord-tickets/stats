@@ -58,7 +58,7 @@ const updateCache = async () => {
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 	if (error) {
 		console.log(JSON.stringify(error));
-		return error;
+		throw error;
 	}
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	const stats = {
@@ -95,7 +95,7 @@ const createSnapshot = async () => {
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 	if (error) {
 		console.log(JSON.stringify(error));
-		return error;
+		throw error;
 	}
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
