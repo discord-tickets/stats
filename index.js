@@ -88,28 +88,42 @@ const updateCache = async () => {
 };
 
 const createSnapshot = async () => {
-	console.log('Creating snapshot...');
-	const {
-		data,
-		error,
-	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
-	if (error) {
-		console.log(JSON.stringify(error));
-		throw error;
+	console.log('Checking snapshots...');
+	const res1 = await supabase.from('stats:snapshots').select('*').eq('date', new Date()).maybeSingle();
+	if (res1.error) {
+		console.log(JSON.stringify(res1.error));
+		throw res1.error;
 	}
-	const stats = {
-		activated_users: sum(data, 'activated_users'),
-		avg_response_time: sum(data, 'avg_response_time') / data.length,
-		categories: sum(data, 'categories'),
-		clients: data.length,
-		date: new Date(),
-		guilds: sum(data, 'guilds'),
-		members: sum(data, 'members'),
-		messages: sum(data, 'messages'),
-		tags: sum(data, 'tags'),
-		tickets: sum(data, 'tickets'),
-	};
-	return await supabase.from('stats:snapshots').insert(stats);
+	if (res1.data) {
+		console.log('Today\'s snapshot already exists');
+		return false;
+	} else {
+		console.log('Creating snapshot...');
+		const res2 = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
+		if (res2.error) {
+			console.log(JSON.stringify(res2.error));
+			throw res2.error;
+		}
+		const stats = {
+			activated_users: sum(res2.data, 'activated_users'),
+			avg_response_time: sum(res2.data, 'avg_response_time') / res2.data.length,
+			categories: sum(res2.data, 'categories'),
+			clients: res2.data.length,
+			date: new Date(),
+			guilds: sum(res2.data, 'guilds'),
+			members: sum(res2.data, 'members'),
+			messages: sum(res2.data, 'messages'),
+			tags: sum(res2.data, 'tags'),
+			tickets: sum(res2.data, 'tickets'),
+		};
+		const res3 = await supabase.from('stats:snapshots').insert(stats);
+		if (res3.error) {
+			console.log(JSON.stringify(res3.error));
+			throw res3.error;
+		}
+		console.log(res3.data);
+		return res3;
+	}
 };
 
 const router = Router();
@@ -159,5 +173,5 @@ addEventListener('fetch', event => event.respondWith(router.handle(event.request
 
 addEventListener('scheduled', event => event.waitUntil(async () => {
 	await updateCache();  // every hour: update cache
-	if (new Date().getUTCHours() === 0) await createSnapshot();  // every day: create a snapshot
+	await createSnapshot();  // every day: create a snapshot
 }));
