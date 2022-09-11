@@ -6,6 +6,7 @@ import { Router } from 'itty-router';
 const schema = joi.object({
 	activated_users: joi.number().integer(),
 	arch: joi.any().valid('arm', 'arm64', 'ia32', 'mips', 'mipsel', 'ppc', 'ppc64', 's390', 's390x', 'x64'),
+	avg_resolution_time: joi.number(), // in minutes
 	avg_response_time: joi.number(), // in minutes
 	categories: joi.number().integer(),
 	guilds: joi.number().integer(),
@@ -64,6 +65,7 @@ const updateCache = async () => {
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
 		arch: transform(activeClients, 'arch'),
+		avg_resolution_time: sum(data, 'avg_resolution_time') / data.length,
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: {
@@ -99,6 +101,7 @@ const createSnapshot = async () => {
 	}
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
+		avg_resolution_time: sum(data, 'avg_resolution_time') / data.length,
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: data.length,

@@ -3,10 +3,17 @@
 ![](https://img.shields.io/badge/dynamic/json?color=5865F2&label=bots&query=clients.total&url=https%3A%2F%2Fstats.discordtickets.app%2Fapi%2Fv3%2Fcurrent&logo=discord&logoColor=white&style=for-the-badge)
 ![](https://img.shields.io/badge/dynamic/json?color=5865F2&label=tickets&query=tickets&url=https%3A%2F%2Fstats.discordtickets.app%2Fapi%2Fv3%2Fcurrent&logo=discord&logoColor=white&style=for-the-badge)
 
+**An API to receive, store, and aggregate data from Discord Tickets bots.**
+
+View the stats at <https://stats.discordtickets.app>.
+
+An example of what your bot sends:
+
 ```json
 {
   "activated_users": 26,
   "arch": "arm64",
+  "avg_resolution_time": 238.9,
   "avg_response_time": 32.7,
   "categories": 2,
   "guilds": 1,
