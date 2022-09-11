@@ -16,6 +16,7 @@ An example of what your bot sends:
   "avg_resolution_time": 238.9,
   "avg_response_time": 32.7,
   "categories": 2,
+  "database": "mysql",
   "guilds": 1,
   "id": "7f4a58c0ff94c01eadef17e4b3c9f0a7",
   "members": 600,

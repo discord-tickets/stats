@@ -9,6 +9,7 @@ const schema = joi.object({
 	avg_resolution_time: joi.number(), // in minutes
 	avg_response_time: joi.number(), // in minutes
 	categories: joi.number().integer(),
+	database: joi.any().valid('mysql', 'postgresql', 'sqlite'),
 	guilds: joi.number().integer(),
 	id: joi.string().required(),
 	members: joi.number().integer(),
@@ -72,6 +73,7 @@ const updateCache = async () => {
 			active: activeClients.length,
 			total: data.length,
 		},
+		database: transform(activeClients, 'database'),
 		guilds: {
 			active: sum(activeClients, 'guilds'),
 			total: sum(data, 'guilds'),
