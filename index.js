@@ -3,6 +3,8 @@ import md5 from 'md5';
 import { createClient } from '@supabase/supabase-js';
 import { Router } from 'itty-router';
 
+const semver = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
+
 const schema = joi.object({
 	activated_users: joi.number().integer(),
 	arch: joi.any().valid('arm', 'arm64', 'ia32', 'mips', 'mipsel', 'ppc', 'ppc64', 's390', 's390x', 'x64'),
@@ -18,7 +20,7 @@ const schema = joi.object({
 	os: joi.any().valid('aix', 'darwin', 'freebsd', 'linux', 'openbsd', 'sunos', 'win32'),
 	tags: joi.number().integer(),
 	tickets: joi.number().integer().required(),
-	version: joi.string().pattern(/^\d+\.\d+\.\d+$/),
+	version: joi.string().pattern(semver),
 }).rename('client', 'id');
 
 // eslint-disable-next-line no-undef
