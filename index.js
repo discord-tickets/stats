@@ -45,13 +45,13 @@ const updateClient = async (body, compatMode = false) => {
 		error: validationError,
 		value,
 	} = schema.validate(body);
-	if (validationError) return new Response(validationError, { status: 400 });
+	if (validationError) return new Response(JSON.stringify({ error: validationError }), { status: 400 });
 	if (compatMode) value.id = md5(value.id);
 	console.log('Updating stats for client', value.id);
 	value.last_seen = new Date();
 	const { error } = await supabase.from('stats:clients').upsert(value, { returning: 'minimal' });
-	if (error) return new Response(JSON.stringify(error), { status: 500 });
-	else return new Response('OK', { status: 200 });
+	if (error) return new Response(JSON.stringify({ error }), { status: 500 });
+	else return new Response(JSON.stringify({ error: null }), { status: 200 });
 };
 
 const updateCache = async () => {
@@ -62,7 +62,7 @@ const updateCache = async () => {
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 	if (error) {
 		console.log(JSON.stringify(error));
-		throw error;
+		throw { error };
 	}
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	const stats = {
@@ -101,7 +101,7 @@ const createSnapshot = async () => {
 	} = await supabase.from('stats:clients').select(); // IMPORTANT: returns max 10,000 rows
 	if (error) {
 		console.log(JSON.stringify(error));
-		throw error;
+		throw { error };
 	}
 	const stats = {
 		activated_users: sum(data, 'activated_users'),
@@ -119,7 +119,7 @@ const createSnapshot = async () => {
 	const res = await supabase.from('stats:snapshots').insert(stats);
 	if (res.error) {
 		console.log(JSON.stringify(res.error));
-		throw res.error;
+		throw { error: res.error };
 	}
 	console.log(res.data);
 	return res;
