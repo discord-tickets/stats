@@ -21,10 +21,10 @@ An example of what your bot sends:
   "id": "7f4a58c0ff94c01eadef17e4b3c9f0a7",
   "members": 600,
   "messages": 347,
-  "node": "v17.0.0",
+  "node": "v18.0.0",
   "os": "linux",
   "tags": 1,
   "tickets": 47,
-  "version": "3.1.3"
+  "version": "4.0.0"
 }
 ```

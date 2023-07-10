@@ -1,6 +1,6 @@
 name = "stats"
 route = 'stats.discordtickets.app/*'
-main = "./index.js"
+main = "./src/index.js"
 account_id = "97b58167ff9c21fe35e878e6a65654f8"
 usage_model = 'bundled'
 compatibility_flags = []
@@ -13,10 +13,10 @@ kv_namespaces = [
 
 
 [triggers]
-  crons = ["0 * * * *"]
+  crons = ["0 0 * * *"]
 
 [vars]
-  SUPABASE_URL =  "https://zbewungpmxujmlpnbfra.supabase.co"
+  REALM_APP_ID = "cloudflare-jhcqs"
 
 # [secrets]
-# SUPABASE_SECRET
+# REALM_API_KEY
