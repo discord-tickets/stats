@@ -53,6 +53,8 @@ export const router = Router({ base: '/api/v3' });
 
 router.get('/current', async (req, env, ctx) => {
 	let stats = await env.CACHE.get('dt:stats', { type: 'json' });
+	if (stats) return stats;
+
 	console.log('Updating cache...');
 	const data = await db(req).collection('clients').find();
 	const activeClients = data.filter(row => isActive(row.last_seen));
@@ -80,7 +82,7 @@ router.get('/current', async (req, env, ctx) => {
 		version: transform(activeClients, 'version'),
 	};
 
-	ctx.waitUntil(env.CACHE.put('dt:stats', JSON.stringify(stats), { expirationTtl: 3660 })); // 61 min
+	ctx.waitUntil(env.CACHE.put('dt:stats/v3', JSON.stringify(stats), { expirationTtl: 3660 })); // 61 min
 	return stats;
 });
 
