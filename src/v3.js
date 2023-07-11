@@ -36,7 +36,7 @@ export const updateClient = async (req, compatMode = false) => {
 		error: validationError,
 		value,
 	} = schema.validate(body);
-	if (validationError) throw error(400, validationError);
+	if (validationError) return error(400, validationError);
 	if (compatMode) value.id = md5(value.id);
 	const id = value.id;
 	delete value.id;
