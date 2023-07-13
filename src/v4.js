@@ -57,6 +57,7 @@ router.get('/current', async (req, env, ctx) => {
 	console.log('Updating cache...');
 	// const data = await db(req).collection('clients').find();
 	// ctx.waitUntil(env.CACHE.put('dt:stats/v4', JSON.stringify(stats), { expirationTtl: 3660 })); // 61 min
+	// TODO: use mongo aggregation to save CPU time
 	const stats = {
 		combined: {},
 		public: {},
@@ -78,7 +79,7 @@ router.get('/current', async (req, env, ctx) => {
 					},
 					count: 0, // TODO: ignore <10 members (presumed test guilds)
 					excluded: 0,
-					lifespan: 0, // in days
+					lifespan: 0, // TODO: ALL, even inactive guilds, in days
 					members: 0,
 					messages: 0,
 					tags: 0,
@@ -92,7 +93,7 @@ router.get('/current', async (req, env, ctx) => {
 					with_tags_regex: 0,
 					with_topic: 0,
 				},
-				lifespan: 0, // in days
+				lifespan: 0, // TODO: ALL, even inactive clients, in days
 				locale: [], // TODO
 				node: [],
 				os: [],
@@ -108,7 +109,7 @@ router.get('/current', async (req, env, ctx) => {
 			},
 		},
 	};
-	// return stats;
+	return stats;
 });
 
 router.get('/history', async req => {
