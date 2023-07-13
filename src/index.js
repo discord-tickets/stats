@@ -8,6 +8,7 @@ import {
 	router as v3,
 	updateClient,
 } from './v3';
+import { router as v4 } from './v4';
 import {
 	db,
 	getRealmUser,
@@ -48,9 +49,14 @@ const router = Router();
 router
 	.all('*', preflight)
 	.get('/', () => Response.redirect('https://grafana.eartharoid.me/goto/fqAqi2Xnz?orgId=1', 302))
+	// v1 (but without `/guild`)
 	.post('/client', async req => await updateClient(req.query, true))
-	.all('/api/v3/*', v3.handle)
+	// v2, client-only
 	.post('/v2', async req => await updateClient(req, true))
+	// v3, client-only
+	.all('/api/v3/*', v3.handle)
+	// v4, client and guilds again
+	.all('/api/v4/*', v4.handle)
 	.all('*', () => error(404));
 
 export default {
@@ -64,6 +70,9 @@ export default {
 	},
 	async scheduled(event, env, ctx) {
 		ctx.waitUntil(createSnapshot(env));
+		// TODO: restore hourly cache filling
+		// TODO: top.gg
+		// TODO offload most to database
 	},
 
 };

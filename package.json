@@ -9,6 +9,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"dependencies": {
+		"flat": "^5.0.2",
 		"itty-router": "^4.0.14",
 		"joi": "^17.6.0",
 		"md5": "^2.3.0",

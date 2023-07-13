@@ -1,6 +1,9 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  flat:
+    specifier: ^5.0.2
+    version: 5.0.2
   itty-router:
     specifier: ^4.0.14
     version: 4.0.14
@@ -372,6 +375,11 @@ packages:
       flatted: 3.2.5
       rimraf: 3.0.2
     dev: true
+
+  /flat@5.0.2:
+    resolution: {integrity: sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==}
+    hasBin: true
+    dev: false
 
   /flatted@3.2.5:
     resolution: {integrity: sha512-WIWGi2L3DyTUvUrwRKgGi9TwxQMUEqPOPQBVi71R96jZXJdFskXEmf54BoZaS1kknGODoIGASGEzBUYdyMCBJg==}
