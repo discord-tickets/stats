@@ -49,6 +49,11 @@ const schema = joi.object({
 export const router = Router({ base: '/api/v4' });
 
 router.get('/current', async (req, env, ctx) => {
+	// await db(req).collection('snapshots').aggregate([
+	// 	{
+	// 		$
+	// 	}
+	// ])
 	console.log('Updating cache...');
 	// const data = await db(req).collection('clients').find();
 	// ctx.waitUntil(env.CACHE.put('dt:stats/v4', JSON.stringify(stats), { expirationTtl: 3660 })); // 61 min
@@ -73,6 +78,7 @@ router.get('/current', async (req, env, ctx) => {
 					},
 					count: 0, // TODO: ignore <10 members (presumed test guilds)
 					excluded: 0,
+					lifespan: 0, // in days
 					members: 0,
 					messages: 0,
 					tags: 0,
