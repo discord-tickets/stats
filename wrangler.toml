@@ -17,6 +17,8 @@ kv_namespaces = [
 
 [vars]
   REALM_APP_ID = "cloudflare-jhcqs"
+  TOPGG_ID = "964624470985826374"
 
 # [secrets]
 # REALM_API_KEY
+# TOPGG_TOKEN

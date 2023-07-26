@@ -19,21 +19,31 @@ const createSnapshot = async env => {
 	console.log('Creating snapshot...');
 	const $db = db({ $RealmUser: await getRealmUser(env) });
 	const data = await $db.collection('clients').find();
-	const res = await $db.collection('snapshots').insertOne({
+	const guilds = data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0);
+	const res1 = await fetch(`https://top.gg/api/bots/${env.TOPGG_ID}/stats`, {
+		body: JSON.stringify({ server_count: guilds }),
+		headers: {
+			'Authorization': env.TOPGG_TOKEN,
+			'Content-Type': 'application/json',
+		},
+		method: 'POST',
+	});
+	console.log('Top.gg:', res1.status, res1.statusText);
+	const res2 = await $db.collection('snapshots').insertOne({
 		activated_users: sum(data, 'activated_users'),
 		avg_resolution_time: sum(data, 'avg_resolution_time') / data.length,
 		avg_response_time: sum(data, 'avg_response_time') / data.length,
 		categories: sum(data, 'categories'),
 		clients: data.length,
 		date: new Date(),
-		guilds: data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
+		guilds,
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
 		tags: sum(data, 'tags'),
 		tickets: sum(data, 'tickets'),
 	});
-	console.log(res);
-	return res;
+	console.log('DB:', res2);
+	return res2;
 };
 
 const {
