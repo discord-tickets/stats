@@ -12,6 +12,7 @@ import { router as v4 } from './v4';
 import {
 	db,
 	getRealmUser,
+	isActive,
 	sum,
 } from './utils';
 
@@ -19,9 +20,8 @@ const createSnapshot = async env => {
 	console.log('Creating snapshot...');
 	const $db = db({ $RealmUser: await getRealmUser(env) });
 	const data = await $db.collection('clients').find();
-	const guilds = data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0);
 	const res1 = await fetch(`https://top.gg/api/bots/${env.TOPGG_ID}/stats`, {
-		body: JSON.stringify({ server_count: guilds }),
+		body: JSON.stringify({ server_count: data.filter(row => isActive(row.last_seen)).reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0) }),
 		headers: {
 			'Authorization': env.TOPGG_TOKEN,
 			'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ const createSnapshot = async env => {
 		categories: sum(data, 'categories'),
 		clients: data.length,
 		date: new Date(),
-		guilds,
+		guilds: data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
 		tags: sum(data, 'tags'),
