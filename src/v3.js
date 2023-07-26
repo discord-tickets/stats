@@ -73,8 +73,8 @@ router.get('/current', async (req, env, ctx) => {
 		},
 		database: transform(activeClients, 'database'),
 		guilds: {
-			active: sum(activeClients, 'guilds'),
-			total: sum(data, 'guilds'),
+			active: activeClients.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
+			total: data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
 		},
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),

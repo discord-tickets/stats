@@ -26,7 +26,7 @@ const createSnapshot = async env => {
 		categories: sum(data, 'categories'),
 		clients: data.length,
 		date: new Date(),
-		guilds: sum(data, 'guilds'),
+		guilds: data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
 		members: sum(data, 'members'),
 		messages: sum(data, 'messages'),
 		tags: sum(data, 'tags'),
