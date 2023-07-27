@@ -17,10 +17,11 @@ import {
 } from './utils';
 
 const createSnapshot = async env => {
+	// TODO: $merge or $out aggregation
 	console.log('Creating snapshot...');
 	const $db = db({ $RealmUser: await getRealmUser(env) });
 	const data = await $db.collection('clients').find();
-	const res1 = await fetch(`https://top.gg/api/bots/${env.TOPGG_ID}/stats`, {
+	const res1 = await fetch(`https://top.gg/api/bots/${env.PUBLIC_BOT_ID}/stats`, {
 		body: JSON.stringify({ server_count: data.filter(row => isActive(row.last_seen)).reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0) }),
 		headers: {
 			'Authorization': env.TOPGG_TOKEN,
