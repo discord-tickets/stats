@@ -8,21 +8,22 @@ import {
 	router as v3,
 	updateClient,
 } from './v3';
-import { router as v4 } from './v4';
+import {
+	updateCache,
+	router as v4,
+} from './v4';
 import {
 	db,
 	getRealmUser,
-	isActive,
-	sum,
 } from './utils';
 
 const createSnapshot = async env => {
 	// TODO: $merge or $out aggregation
 	console.log('Creating snapshot...');
 	const $db = db({ $RealmUser: await getRealmUser(env) });
-	const data = await $db.collection('clients').find();
+	const stats = JSON.parse(await env.CACHE.get('dt:stats/v4'));
 	const res1 = await fetch(`https://top.gg/api/bots/${env.PUBLIC_BOT_ID}/stats`, {
-		body: JSON.stringify({ server_count: data.filter(row => isActive(row.last_seen)).reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0) }),
+		body: JSON.stringify({ server_count: stats.combined.total.guilds }),
 		headers: {
 			'Authorization': env.TOPGG_TOKEN,
 			'Content-Type': 'application/json',
@@ -31,17 +32,8 @@ const createSnapshot = async env => {
 	});
 	console.log('Top.gg:', res1.status, res1.statusText);
 	const res2 = await $db.collection('snapshots').insertOne({
-		activated_users: sum(data, 'activated_users'),
-		avg_resolution_time: sum(data, 'avg_resolution_time') / data.length,
-		avg_response_time: sum(data, 'avg_response_time') / data.length,
-		categories: sum(data, 'categories'),
-		clients: data.length,
 		date: new Date(),
-		guilds: data.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
-		members: sum(data, 'members'),
-		messages: sum(data, 'messages'),
-		tags: sum(data, 'tags'),
-		tickets: sum(data, 'tickets'),
+		...stats.combined.total,
 	});
 	console.log('DB:', res2);
 	return res2;
@@ -80,10 +72,8 @@ export default {
 			.then(corsify);
 	},
 	async scheduled(event, env, ctx) {
-		ctx.waitUntil(createSnapshot(env));
-		// TODO: restore hourly cache filling
-		// TODO: top.gg
-		// TODO offload most to database
+		if (event.cron === '0 * * * *') ctx.waitUntil(updateCache(env));
+		if (event.cron === '0 0 * * *') ctx.waitUntil(createSnapshot(env));
 	},
 
 };

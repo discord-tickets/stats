@@ -58,7 +58,7 @@ router.get('/current', async (req, env, ctx) => {
 	let stats = await env.CACHE.get('dt:stats', { type: 'json' });
 	if (stats) return stats;
 
-	console.log('Updating cache...');
+	console.log('Updating v3 cache...');
 	const data = await db(req).collection('clients').find();
 	const activeClients = data.filter(row => isActive(row.last_seen));
 	stats = {
