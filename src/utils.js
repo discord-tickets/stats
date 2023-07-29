@@ -156,9 +156,11 @@ export const aggregate = async ($db, $match) => {
 			members:
 				allClients.reduce((acc, row) => acc + (typeof row.members === 'number' && typeof row.guilds !== 'object' ? row.members : 0), 0) + // <H4
 				allH4ClientsGuilds.reduce((acc, row) => acc + row.members, 0), // >=H4
-			messages:
-				allClients.reduce((acc, row) => acc + (typeof row.messages === 'number' && typeof row.guilds !== 'object' ? row.messages : 0), 0) + // <H4
-				allH4ClientsGuilds.reduce((acc, row) => acc + row.messages, 0), // >=H4
+			messages: activeClients.reduce((acc, row) => acc + (
+				typeof row.guilds === 'number'
+					? row.messages || 0
+					: Object.values(row.guilds).find(g => isActive(g.last_seen))?.messages || 0)
+			, 0),
 			tags:
 				allClients.reduce((acc, row) => acc + (typeof row.tags === 'number' && typeof row.guilds !== 'object' ? row.tags : 0), 0) + // <H4
 				allH4ClientsGuilds.reduce((acc, row) => acc + row.features.tags, 0), // >=H4,

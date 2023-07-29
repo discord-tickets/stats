@@ -95,10 +95,10 @@ export const updateCache = async env => {
 				with_tags_regex: _public.active.guilds.with_tags_regex + self_hosted.active.guilds.with_tags_regex,
 				with_topic: _public.active.guilds.with_topic + self_hosted.active.guilds.with_topic,
 			},
-			lifespan: 0, // ALL clients, in days
+			lifespan: Math.round((_public.active.lifespan + self_hosted.active.lifespan) / 2),
 			node: mergeTransformed(_public.active.node, self_hosted.active.node),
 			os: mergeTransformed(_public.active.os, self_hosted.active.os),
-			version: mergeTransformed(_public.active.version, self_hosted.active.version), // all houston versions
+			version: mergeTransformed(_public.active.version, self_hosted.active.version),
 		},
 		total: {
 			activated_users: _public.total.activated_users + self_hosted.total.activated_users,
@@ -128,7 +128,6 @@ router.get('/history', async req => {
 	const days = req.query.days || 30;
 	const date = new Date(Date.now() - (days * 24 * 60 * 60 * 1000));
 	const data = await db(req).collection('snapshots').find({ date: { $gte: date } });
-	// TODO: lifespan
 	return data;
 });
 
