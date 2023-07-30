@@ -51,7 +51,7 @@ const router = Router();
 
 router
 	.all('*', preflight)
-	.get('/', () => Response.redirect('https://grafana.eartharoid.me/goto/fqAqi2Xnz?orgId=1', 302))
+	.get('/', () => Response.redirect('https://grafana.eartharoid.me/d/n5IceB34z/discord-tickets-h4?orgId=1', 302))
 	// v1 (but without `/guild`)
 	.post('/client', async req => await updateClient(req.query, true))
 	// v2, client-only
