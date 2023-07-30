@@ -55,7 +55,7 @@ export const updateClient = async (req, compatMode = false) => {
 export const router = Router({ base: '/api/v3' });
 
 router.get('/current', async (req, env, ctx) => {
-	let stats = await env.CACHE.get('dt:stats', { type: 'json' });
+	let stats = await env.CACHE.get('dt:stats/v3', { type: 'json' });
 	if (stats) return stats;
 
 	console.log('Updating v3 cache...');
