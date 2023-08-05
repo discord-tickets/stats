@@ -23,7 +23,12 @@ const createSnapshot = async env => {
 	const $db = db({ $RealmUser: await getRealmUser(env) });
 	const stats = JSON.parse(await env.CACHE.get('dt:stats/v4'));
 	const res1 = await fetch(`https://top.gg/api/bots/${env.PUBLIC_BOT_ID}/stats`, {
-		body: JSON.stringify({ server_count: stats.combined.active.guilds.count }),
+		body: JSON.stringify({
+			server_count:
+				stats.combined.active.guilds.count +
+				stats.combined.active.guilds.excluded.insufficient_data +
+				stats.combined.active.guilds.excluded.presumed_test,
+		}),
 		headers: {
 			'Authorization': env.TOPGG_TOKEN,
 			'Content-Type': 'application/json',
