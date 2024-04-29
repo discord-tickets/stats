@@ -58,18 +58,19 @@ router
 	.all('*', preflight)
 	.get('/', () => Response.redirect('https://grafana.eartharoid.me/d/n5IceB34z/discord-tickets-h4?orgId=1', 302))
 	// v1 (but without `/guild`)
-	.post('/client', async req => await updateClient(req.query, true))
-	// v2, client-only
-	.post('/v2', async req => await updateClient(req, true))
-	// v3, client-only
-	.all('/api/v3/*', v3.handle)
-	// v4, client and guilds again
-	.all('/api/v4/*', v4.handle)
-	.all('*', () => error(404));
+	// .post('/client', async req => await updateClient(req.query, true))
+	// // v2, client-only
+	// .post('/v2', async req => await updateClient(req, true))
+	// // v3, client-only
+	// .all('/api/v3/*', v3.handle)
+	// // v4, client and guilds again
+	// .all('/api/v4/*', v4.handle)
+	// .all('*', () => error(404));
+	.all('*', () => json({ message: 'Service Unavailable' }));
 
 export default {
 	async fetch(req, env, ctx) {
-		req.$RealmUser = await getRealmUser(env);
+		// req.$RealmUser = await getRealmUser(env);
 		return router
 			.handle(req, env, ctx)
 			.then(json)
@@ -77,8 +78,10 @@ export default {
 			.then(corsify);
 	},
 	async scheduled(event, env, ctx) {
-		if (event.cron === '0 * * * *') ctx.waitUntil(updateCache(env));
-		if (event.cron === '0 0 * * *') ctx.waitUntil(createSnapshot(env));
+		// FIXME:
+		// if (event.cron === '0 * * * *') ctx.waitUntil(updateCache(env));
+		// if (event.cron === '0 0 * * *') ctx.waitUntil(createSnapshot(env));
+		console.log('scheduled event');
 	},
 
 };
