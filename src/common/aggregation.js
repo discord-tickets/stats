@@ -1,18 +1,6 @@
-import * as Realm from 'realm-web';
+import { db } from './db';
 
 const DAY = 1000 * 60 * 60 * 24;
-
-
-export const getRealmUser = async env => {
-	const RealmApp = new Realm.App(env.REALM_APP_ID);
-	return await RealmApp.logIn(Realm.Credentials.apiKey(env.REALM_API_KEY));
-};
-
-/**
- * @param {object} req
- * @param {Realm.User} req.$RealmUser
-*/
-export const db = req => req.$RealmUser.mongoClient('mongodb-atlas').db('discord-tickets');
 
 export const r2dp = n => Number(n.toFixed(2));
 
@@ -55,7 +43,9 @@ export const mergeTransformed = (a, b) => Object.entries(
 	}))
 	.sort((a, b) => b.count - a.count);
 
-export const aggregate = async ($db, $match) => {
+export const aggregate = async $match => {
+	// TODO: AsyncIterator instead of toArray to reduce memory usage
+	// ? https://www.mongodb.com/docs/drivers/node/current/fundamentals/crud/read-operations/cursor/#asynchronous-iteration
 	const aWeekAgo = new Date(Date.now() - (7 * 24 * 60 * 60 * 1000));
 	const $matchActive = {
 		...$match,
@@ -66,25 +56,28 @@ export const aggregate = async ($db, $match) => {
 		'houston': { '$gte': 4 },
 	};
 	// native/mongo equivalent of `transform()`
-	const count = (prop, $match) => $db.collection('clients').aggregate([
-		{ '$match': { ...$match } },
-		{
-			'$group': {
-				'_id': prop,
-				'count': { '$count': {} },
+	const count = (prop, $match) => db
+		.collection('clients')
+		.aggregate([
+			{ '$match': { ...$match } },
+			{
+				'$group': {
+					'_id': prop,
+					'count': { '$count': {} },
+				},
 			},
-		},
-		{
-			'$project': {
-				'_id': 0,
-				'count': 1,
-				'name': '$_id',
+			{
+				'$project': {
+					'_id': 0,
+					'count': 1,
+					'name': '$_id',
+				},
 			},
-		},
-		{ '$sort': { 'count': -1 } },
-	]);
-	const allClients = await $db.collection('clients').find($match); // all clients, including houston < 4
-	const activeClients = await $db.collection('clients').find($matchActive); //
+			{ '$sort': { 'count': -1 } },
+		])
+		.toArray();
+	const allClients = await db.collection('clients').find($match).toArray(); // all clients, including houston < 4
+	const activeClients = await db.collection('clients').find($matchActive).toArray(); //
 	// (`Object.values(number) == []` so it only includes houston >= 4 without explicitly checking)
 	const allH4ClientsGuilds = allClients.reduce((acc, row) => acc.concat(Object.values(row.guilds)), []); // all guilds where client's houston >= 4
 	const activeH4ClientsGuilds = activeClients.reduce((acc, row) => acc.concat(Object.values(row.guilds)), []); // all guilds where client's houston >= 4 and client is active

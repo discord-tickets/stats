@@ -1,87 +1,16 @@
-import {
-	createCors,
-	error,
-	json,
-	Router,
-} from 'itty-router';
-import {
-	router as v3,
-	updateClient,
-} from './v3';
-import {
-	updateCache,
-	router as v4,
-} from './v4';
-import {
-	db,
-	getRealmUser,
-} from './utils';
+/* global Bun */
 
-const createSnapshot = async env => {
-	// TODO: $merge or $out aggregation
-	console.log('Creating snapshot...');
-	const $db = db({ $RealmUser: await getRealmUser(env) });
-	const stats = JSON.parse(await env.CACHE.get('dt:stats/v4'));
-	const res1 = await fetch(`https://top.gg/api/bots/${env.PUBLIC_BOT_ID}/stats`, {
-		body: JSON.stringify({
-			server_count:
-				stats.combined.active.guilds.count +
-				stats.combined.active.guilds.excluded.insufficient_data +
-				stats.combined.active.guilds.excluded.presumed_test,
-		}),
-		headers: {
-			'Authorization': env.TOPGG_TOKEN,
-			'Content-Type': 'application/json',
-		},
-		method: 'POST',
-	});
-	console.log('Top.gg:', res1.status, res1.statusText);
-	const res2 = await $db.collection('snapshots').insertOne({
-		date: new Date(),
-		...stats.combined.total,
-	});
-	console.log('DB:', res2);
-	return res2;
-};
+import { router } from './router';
+import { log } from './logger';
 
-const {
-	preflight,
-	corsify,
-} = createCors({
-	methods: ['GET', 'POST'],
-	origins: ['*'],
+// FIXME: cron jobs
+// if (event.cron === '0 * * * *') ctx.waitUntil(updateCache(env));
+// if (event.cron === '0 0 * * *') ctx.waitUntil(createSnapshot(env));
+
+const server = Bun.serve({
+	idleTimeout: process.env.IDLE_TIMEOUT ?? 10,
+	port: process.env.PORT ?? 8080,
+	...router,
 });
 
-const router = Router();
-
-router
-	.all('*', preflight)
-	.get('/', () => Response.redirect('https://grafana.eartharoid.me/d/n5IceB34z/discord-tickets-h4?orgId=1', 302))
-	// v1 (but without `/guild`)
-	// .post('/client', async req => await updateClient(req.query, true))
-	// // v2, client-only
-	// .post('/v2', async req => await updateClient(req, true))
-	// // v3, client-only
-	// .all('/api/v3/*', v3.handle)
-	// // v4, client and guilds again
-	// .all('/api/v4/*', v4.handle)
-	// .all('*', () => error(404));
-	.all('*', () => json({ message: 'Service Unavailable' }));
-
-export default {
-	async fetch(req, env, ctx) {
-		// req.$RealmUser = await getRealmUser(env);
-		return router
-			.handle(req, env, ctx)
-			.then(json)
-			.catch(error)
-			.then(corsify);
-	},
-	async scheduled(event, env, ctx) {
-		// FIXME:
-		// if (event.cron === '0 * * * *') ctx.waitUntil(updateCache(env));
-		// if (event.cron === '0 0 * * *') ctx.waitUntil(createSnapshot(env));
-		console.log('scheduled event');
-	},
-
-};
+log.success('Listening on port %d', server.port);

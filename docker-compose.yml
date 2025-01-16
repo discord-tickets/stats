@@ -1,0 +1,19 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    env_file: .env
+    tty: true
+    labels:
+      - traefik.enable="true"
+      - traefik.http.routers.dtb109.entrypoints="websecure"
+      - traefik.http.routers.dtb109.rule="Host(\`stats.discordtickets.app\`)"
+      - traefik.http.services.dtb109.loadbalancer.server.port="8080"
+    # environment:
+      # - MONGODB_URL=
+      # - PUBLIC_BOT_ID=
+      # - TOPGG_TOKEN=
+      # - LOG_LEVEL=info
+      # - IDLE_TIMEOUT=10
+      # - PORT=8080

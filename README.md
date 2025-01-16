@@ -28,3 +28,10 @@ An example of what your bot sends:
   "version": "4.0.0"
 }
 ```
+
+
+## TODO:
+
+- [ ] test
+- [x] docker
+- [ ] snapshot cron
