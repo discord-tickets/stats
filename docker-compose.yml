@@ -19,3 +19,6 @@ services:
       # - LOG_LEVEL=info
       # - IDLE_TIMEOUT=10
       # - PORT=8080
+networks:
+  mongo:
+    external: true
