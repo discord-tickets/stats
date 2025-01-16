@@ -6,10 +6,10 @@ services:
     env_file: .env
     tty: true
     labels:
-      - traefik.enable="true"
-      - traefik.http.routers.dtb109.entrypoints="websecure"
-      - traefik.http.routers.dtb109.rule="Host(\`stats.discordtickets.app\`)"
-      - traefik.http.services.dtb109.loadbalancer.server.port="8080"
+      - traefik.enable=true
+      - traefik.http.routers.dtb109.entrypoints=websecure
+      - traefik.http.routers.dtb109.rule=Host(`stats.discordtickets.app`)
+      - traefik.http.services.dtb109.loadbalancer.server.port=8080
     networks:
       - mongo
     # environment:
