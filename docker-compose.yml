@@ -22,3 +22,5 @@ services:
 networks:
   mongo:
     external: true
+  traefik:
+    external: true
