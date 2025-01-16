@@ -76,7 +76,7 @@ export function logRequests(req: DecoratedRequest) {
 		id: `req-${(counter++).toString(36)}`,
 		start: Date.now(),
 	};
-	log.info.http(`${req.$logger.id} &7${getClientIp(req as any) ?? '?'}&b &m-->&r&b ${req.method} ${new URL(req.url).pathname}`);
+	log.info.http(`${req.$logger.id} &7${req.headers.get('x-forwarded-for') ?? '?'}&b &m-->&r&b ${req.method} ${new URL(req.url).pathname}`);
 	log.verbose.http(req.$logger.id, Object.fromEntries(req.headers));
 };
 
