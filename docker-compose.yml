@@ -10,6 +10,8 @@ services:
       - traefik.http.routers.dtb109.entrypoints="websecure"
       - traefik.http.routers.dtb109.rule="Host(\`stats.discordtickets.app\`)"
       - traefik.http.services.dtb109.loadbalancer.server.port="8080"
+    networks:
+      - mongo
     # environment:
       # - MONGODB_URL=
       # - PUBLIC_BOT_ID=
