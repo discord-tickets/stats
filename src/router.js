@@ -11,7 +11,6 @@ import {
 	logResponses,
 } from './logger';
 
-
 const {
 	preflight,
 	corsify,

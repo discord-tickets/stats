@@ -33,5 +33,4 @@ An example of what your bot sends:
 ## TODO:
 
 - [ ] test
-- [x] docker
 - [ ] snapshot cron
