@@ -12,6 +12,7 @@ services:
       - traefik.http.services.dtb109.loadbalancer.server.port=8080
     networks:
       - mongo
+      - traefik
     # environment:
       # - MONGODB_URL=
       # - PUBLIC_BOT_ID=
