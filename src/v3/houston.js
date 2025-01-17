@@ -9,7 +9,10 @@ export const updateV3Client = async (req, compatMode = false) => {
 		error: validationError,
 		value,
 	} = schema.validate(body);
-	if (validationError) throw new Error(validationError);
+	if (validationError) {
+		log.error('%s Validation error:', req.$logger.id, validationError);
+		throw new Error(validationError);
+	}
 	if (compatMode) value.id = md5(value.id);
 	const id = value.id;
 	delete value.id;

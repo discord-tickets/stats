@@ -11,7 +11,7 @@ export default joi.object({
 		avg_response_time: joi.number().required(), // in minutes
 		categories: joi.number().integer().required(),
 		features: joi.object({
-			auto_close: joi.number().integer().required(), // value in minutes
+			auto_close: joi.number().required(), // value in minutes
 			claiming: joi.number().integer().required(), // number of categories
 			feedback: joi.number().integer().required(),
 			logs: joi.boolean().required(),
