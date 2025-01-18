@@ -107,20 +107,26 @@ export const aggregate = async $match => {
 					insufficient_data: activeClients.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : 0), 0), // guilds where client's houston < 4
 					presumed_test: activeGuilds.length - realGuilds.length, // guilds with <10 members
 				},
+				lasting_lifespan: (() => {
+					// real guilds from all clients (including inactive) that survived more than a week
+					const lastingGuilds = allH4ClientsGuilds
+						.map(row => {
+							row.lifespan = (row.last_seen - row.first_seen) / DAY;
+							return row;
+						})
+						.filter(row => row.members >= 10 && row.lifespan > 7);
+					return Math.round(
+						lastingGuilds
+							.reduce((acc, row) => acc + row.lifespan, 0) / lastingGuilds.length,
+					);
+				})(),
 				lifespan: Math.round( // ALL guilds in days
 					allH4ClientsGuilds
 						.filter(row => row.members >= 10) // real but include inactive clients and guilds
-						.reduce((acc, row) => acc + (row.last_seen - row.first_seen), 0) /
-					DAY / allH4ClientsGuilds.length,
+						.reduce((acc, row) => acc + ((row.last_seen - row.first_seen) / DAY), 0) / allH4ClientsGuilds.length,
 				),
 				locale: transform(realGuilds, 'locale'), // ? idk how to do this one in mongo
 				members: realGuilds.reduce((acc, row) => acc + row.members, 0),
-				// `messages` should have been on the client not guilds...
-				messages: activeClients.reduce((acc, row) => acc + (
-					typeof row.guilds === 'number'
-						? row.messages || 0
-						: Object.values(row.guilds).find(g => isActive(g.last_seen))?.messages || 0)
-				, 0),
 				tags: sum(realGuilds, 'features.tags'),
 				tags_regex: sum(realGuilds, 'features.tags_regex'),
 				tickets: sum(realGuilds, 'tickets'),
@@ -133,7 +139,20 @@ export const aggregate = async $match => {
 				with_tags_regex: sumish(realGuilds, 'features.tags_regex'),
 				with_topic: sumish(realGuilds, 'features.topic'),
 			},
-			lifespan: Math.round(allClients.reduce((acc, row) => acc + (row.last_seen - row.first_seen), 0) / DAY / allClients.length), // ALL clients, in days
+			lasting_lifespan: (() => {
+				// clients that survived more than a week
+				const lastingClients = allClients
+					.map(row => {
+						row.lifespan = (row.last_seen - row.first_seen) / DAY;
+						return row;
+					})
+					.filter(row => row.lifespan > 7);
+				return Math.round(
+					lastingClients
+						.reduce((acc, row) => acc + row.lifespan, 0) / lastingClients.length,
+				);
+			})(),
+			lifespan: Math.round(allClients.reduce((acc, row) => acc + ((row.last_seen - row.first_seen) / DAY), 0) / allClients.length), // ALL clients, in days
 			node: await count('$node', $matchActiveWithHouston4),
 			os: await count('$os', $matchActiveWithHouston4),
 			version: await count('$version', $matchActive), // all houston versions
@@ -148,12 +167,8 @@ export const aggregate = async $match => {
 			guilds: allClients.reduce((acc, row) => acc + (typeof row.guilds === 'number' ? row.guilds : Object.keys(row.guilds).length), 0),
 			members:
 				allClients.reduce((acc, row) => acc + (typeof row.members === 'number' && typeof row.guilds !== 'object' ? row.members : 0), 0) + // <H4
-				allH4ClientsGuilds.reduce((acc, row) => acc + row.members, 0), // >=H4
-			messages: activeClients.reduce((acc, row) => acc + (
-				typeof row.guilds === 'number'
-					? row.messages || 0
-					: Object.values(row.guilds).find(g => isActive(g.last_seen))?.messages || 0)
-			, 0),
+				allH4ClientsGuilds.reduce((acc, row) => acc + (row.members ?? 0), 0), // >=H4
+			messages: activeClients.reduce((acc, row) => acc + (row.messages ?? 0), 0),
 			tags:
 				allClients.reduce((acc, row) => acc + (typeof row.tags === 'number' && typeof row.guilds !== 'object' ? row.tags : 0), 0) + // <H4
 				allH4ClientsGuilds.reduce((acc, row) => acc + row.features.tags, 0), // >=H4,

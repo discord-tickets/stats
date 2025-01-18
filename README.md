@@ -34,3 +34,5 @@ An example of what your bot sends:
 
 - [ ] test
 - [ ] snapshot cron
+- [ ] fix cache TTL
+- [x] backfill public bot data

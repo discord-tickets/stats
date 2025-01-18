@@ -1,4 +1,4 @@
 import Keyv from 'keyv';
-import { seconds } from 'itty-time';
+import { ms } from 'itty-time';
 
-export default new Keyv({ ttl: seconds('3h') });
+export default new Keyv({ ttl: ms('3h') });
